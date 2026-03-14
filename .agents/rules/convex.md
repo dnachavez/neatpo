@@ -1,4 +1,5 @@
 ---
+trigger: model_decision
 description: Use Convex as the backend-as-a-service for all backend logic, database, and real-time data
 ---
 
@@ -32,11 +33,11 @@ Every database query, mutation, action, and server-side function must be defined
 
 Convex provides three function types — use the right one:
 
-| Function Type | Use For | Has DB Access | Can Call External APIs |
-|---|---|---|---|
-| `query` | Reading data (reactive, real-time) | ✅ | ❌ |
-| `mutation` | Writing data (transactional) | ✅ | ❌ |
-| `action` | Side effects, external API calls | Via `ctx.runQuery`/`ctx.runMutation` | ✅ |
+| Function Type | Use For                            | Has DB Access                        | Can Call External APIs |
+| ------------- | ---------------------------------- | ------------------------------------ | ---------------------- |
+| `query`       | Reading data (reactive, real-time) | ✅                                   | ❌                     |
+| `mutation`    | Writing data (transactional)       | ✅                                   | ❌                     |
+| `action`      | Side effects, external API calls   | Via `ctx.runQuery`/`ctx.runMutation` | ✅                     |
 
 ```tsx
 import { query, mutation, action } from "./_generated/server";
@@ -62,7 +63,9 @@ export const createTask = mutation({
 export const sendNotification = action({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    const user = await ctx.runQuery(internal.users.getUser, { id: args.userId });
+    const user = await ctx.runQuery(internal.users.getUser, {
+      id: args.userId,
+    });
     // Call external API here
   },
 });

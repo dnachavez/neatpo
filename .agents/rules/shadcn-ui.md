@@ -1,4 +1,5 @@
 ---
+trigger: model_decision
 description: Always use shadcn/ui for UI components — never build custom primitives from scratch
 ---
 
@@ -53,7 +54,7 @@ Always use the `cn()` helper from `@/lib/utils` when combining Tailwind classes,
 ```tsx
 import { cn } from "@/lib/utils";
 
-<div className={cn("base-class", isActive && "active-class")} />
+<div className={cn("base-class", isActive && "active-class")} />;
 ```
 
 ### 5. Use Phosphor Icons

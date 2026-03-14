@@ -1,4 +1,5 @@
 ---
+trigger: model_decision
 description: Use TanStack Query for all server state management and data fetching
 ---
 
@@ -27,14 +28,13 @@ Use structured, hierarchical query key arrays for predictable cache management:
 
 ```tsx
 // Good: structured keys
-["users"]                      // all users
-["users", userId]              // single user
-["users", userId, "posts"]     // user's posts
-["users", { status: "active" }] // filtered users
+["users"][("users", userId)][("users", userId, "posts")][ // all users // single user // user's posts
+  ("users", { status: "active" })
+]; // filtered users
 
 // Bad: flat strings
-"users"
-"user-123"
+("users");
+("user-123");
 ```
 
 Create a query key factory per feature for consistency:

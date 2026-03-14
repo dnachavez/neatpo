@@ -1,4 +1,5 @@
 ---
+trigger: model_decision
 description: Use React Hook Form with Zod for all form handling and validation
 ---
 

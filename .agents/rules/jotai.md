@@ -1,4 +1,5 @@
 ---
+trigger: model_decision
 description: Use Jotai for all client-side state management
 ---
 
@@ -50,7 +51,7 @@ export const themeAtom = atom(
   (get, set, newTheme: Theme) => {
     set(baseThemeAtom, newTheme);
     localStorage.setItem("theme", newTheme);
-  }
+  },
 );
 ```
 
