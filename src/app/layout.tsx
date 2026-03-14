@@ -8,6 +8,8 @@ import {
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
+import { ProgressBarProvider } from "@/components/progress-bar-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -45,15 +47,18 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        "font-mono",
+        geistSans.variable,
+        geistMono.variable,
         jetbrainsMono.variable,
         instrumentSerif.variable
       )}
     >
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+      <body className="font-sans antialiased">
+        <ConvexClientProvider>
+          <ProgressBarProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </ProgressBarProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );
