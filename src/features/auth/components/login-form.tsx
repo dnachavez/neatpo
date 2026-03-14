@@ -78,7 +78,7 @@ export function LoginForm() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {loginError && (
-              <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+              <div className="border-destructive/20 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-xs">
                 {loginError}
               </div>
             )}
@@ -94,12 +94,12 @@ export function LoginForm() {
                 autoComplete="email"
                 className={cn(
                   "border-neutral-200 bg-white font-sans",
-                  errors.email && "border-destructive"
+                  errors.email && "border-destructive",
                 )}
                 {...register("email")}
               />
               {errors.email && (
-                <p className="font-sans text-xs text-destructive">
+                <p className="text-destructive font-sans text-xs">
                   {errors.email.message}
                 </p>
               )}
@@ -119,12 +119,12 @@ export function LoginForm() {
                 autoComplete="current-password"
                 className={cn(
                   "border-neutral-200 bg-white font-sans",
-                  errors.password && "border-destructive"
+                  errors.password && "border-destructive",
                 )}
                 {...register("password")}
               />
               {errors.password && (
-                <p className="font-sans text-xs text-destructive">
+                <p className="text-destructive font-sans text-xs">
                   {errors.password.message}
                 </p>
               )}

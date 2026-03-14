@@ -18,12 +18,12 @@ export default defineSchema({
         description: v.string(),
         quantity: v.number(),
         unitPrice: v.number(),
-      })
+      }),
     ),
     status: v.union(
       v.literal("draft"),
       v.literal("processing"),
-      v.literal("completed")
+      v.literal("completed"),
     ),
     totalAmount: v.number(),
     userId: v.id("users"),
@@ -41,7 +41,7 @@ export default defineSchema({
       v.literal("uploaded"),
       v.literal("processing"),
       v.literal("extracted"),
-      v.literal("matched")
+      v.literal("matched"),
     ),
     purchaseOrderId: v.optional(v.id("purchaseOrders")),
     userId: v.id("users"),

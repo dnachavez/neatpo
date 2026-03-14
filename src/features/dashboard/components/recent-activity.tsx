@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  FileText,
-  UploadSimple,
-  ArrowRight,
-} from "@phosphor-icons/react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { FileText, UploadSimple, ArrowRight } from "@phosphor-icons/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 interface ActivityItem {

@@ -50,7 +50,7 @@ export default function RootLayout({
         geistSans.variable,
         geistMono.variable,
         jetbrainsMono.variable,
-        instrumentSerif.variable
+        instrumentSerif.variable,
       )}
     >
       <body className="font-sans antialiased">

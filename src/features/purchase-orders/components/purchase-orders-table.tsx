@@ -1,12 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -126,8 +121,11 @@ export function PurchaseOrdersTable() {
                     {order.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right text-sm tabular-nums text-black">
-                  ${order.totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                <TableCell className="text-right text-sm text-black tabular-nums">
+                  $
+                  {order.totalAmount.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                  })}
                 </TableCell>
                 <TableCell className="text-right text-sm text-neutral-400">
                   {order.createdAt}

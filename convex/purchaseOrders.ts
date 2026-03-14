@@ -20,7 +20,7 @@ export const listByStatus = query({
     status: v.union(
       v.literal("draft"),
       v.literal("processing"),
-      v.literal("completed")
+      v.literal("completed"),
     ),
   },
   handler: async (ctx, args) => {
@@ -40,7 +40,7 @@ export const create = mutation({
         description: v.string(),
         quantity: v.number(),
         unitPrice: v.number(),
-      })
+      }),
     ),
     totalAmount: v.number(),
     userId: v.id("users"),
@@ -60,7 +60,7 @@ export const updateStatus = mutation({
     status: v.union(
       v.literal("draft"),
       v.literal("processing"),
-      v.literal("completed")
+      v.literal("completed"),
     ),
   },
   handler: async (ctx, args) => {

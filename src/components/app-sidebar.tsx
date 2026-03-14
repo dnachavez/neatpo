@@ -78,13 +78,18 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-neutral-200 bg-white">
-      <SidebarHeader className={cn("h-12 justify-center", isCollapsed ? "px-0" : "px-5")}>
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-neutral-200 bg-white"
+    >
+      <SidebarHeader
+        className={cn("h-12 justify-center", isCollapsed ? "px-0" : "px-5")}
+      >
         <Link
           href="/"
           className={cn(
             "flex items-center",
-            isCollapsed ? "justify-center" : "gap-2"
+            isCollapsed ? "justify-center" : "gap-2",
           )}
         >
           <span className="font-serif text-xl tracking-tight text-black">
@@ -115,7 +120,7 @@ export function AppSidebar() {
                       className={cn(
                         "h-9 gap-3 rounded-md px-3 text-sm font-medium text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-black",
                         isActive &&
-                          "!bg-black !text-white hover:!bg-neutral-800 hover:!text-white"
+                          "!bg-black !text-white hover:!bg-neutral-800 hover:!text-white",
                       )}
                     >
                       <item.icon
@@ -147,12 +152,8 @@ export function AppSidebar() {
               >
                 {initials}
               </PopoverTrigger>
-              <PopoverContent
-                side="right"
-                align="end"
-                className="w-48 p-1.5"
-              >
-                <div className="border-b border-neutral-200 px-2 pb-1.5 mb-1.5">
+              <PopoverContent side="right" align="end" className="w-48 p-1.5">
+                <div className="mb-1.5 border-b border-neutral-200 px-2 pb-1.5">
                   <p className="text-sm font-medium text-black">
                     {authUser?.name ?? "User"}
                   </p>

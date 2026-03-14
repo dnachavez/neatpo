@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash } from "@phosphor-icons/react";
-import {
-  createPoSchema,
-  type CreatePoFormData,
-} from "../types/po-schema";
+import { createPoSchema, type CreatePoFormData } from "../types/po-schema";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -57,13 +54,11 @@ export function CreatePoDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-          render={
-            <Button className="bg-black text-white hover:bg-neutral-800" />
-          }
-        >
-          <Plus size={16} weight="bold" />
-          Create PO
-        </DialogTrigger>
+        render={<Button className="bg-black text-white hover:bg-neutral-800" />}
+      >
+        <Plus size={16} weight="bold" />
+        Create PO
+      </DialogTrigger>
       <DialogContent className="border-neutral-200 bg-white sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl font-normal tracking-tight">
@@ -82,12 +77,12 @@ export function CreatePoDialog() {
                 placeholder="PO-2026-006"
                 className={cn(
                   "border-neutral-200 bg-white",
-                  errors.poNumber && "border-destructive"
+                  errors.poNumber && "border-destructive",
                 )}
                 {...register("poNumber")}
               />
               {errors.poNumber && (
-                <p className="text-xs text-destructive">
+                <p className="text-destructive text-xs">
                   {errors.poNumber.message}
                 </p>
               )}
@@ -98,12 +93,12 @@ export function CreatePoDialog() {
                 placeholder="Supplier name"
                 className={cn(
                   "border-neutral-200 bg-white",
-                  errors.supplier && "border-destructive"
+                  errors.supplier && "border-destructive",
                 )}
                 {...register("supplier")}
               />
               {errors.supplier && (
-                <p className="text-xs text-destructive">
+                <p className="text-destructive text-xs">
                   {errors.supplier.message}
                 </p>
               )}
@@ -142,7 +137,9 @@ export function CreatePoDialog() {
                     type="number"
                     placeholder="Qty"
                     className="border-neutral-200 bg-white text-sm"
-                    {...register(`items.${index}.quantity`, { valueAsNumber: true })}
+                    {...register(`items.${index}.quantity`, {
+                      valueAsNumber: true,
+                    })}
                   />
                 </div>
                 <div className="w-24">
@@ -151,7 +148,9 @@ export function CreatePoDialog() {
                     step="0.01"
                     placeholder="Price"
                     className="border-neutral-200 bg-white text-sm"
-                    {...register(`items.${index}.unitPrice`, { valueAsNumber: true })}
+                    {...register(`items.${index}.unitPrice`, {
+                      valueAsNumber: true,
+                    })}
                   />
                 </div>
                 {fields.length > 1 && (
@@ -160,7 +159,7 @@ export function CreatePoDialog() {
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => remove(index)}
-                    className="mt-1 text-neutral-400 hover:text-destructive"
+                    className="hover:text-destructive mt-1 text-neutral-400"
                   >
                     <Trash size={14} />
                   </Button>

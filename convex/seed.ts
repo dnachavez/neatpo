@@ -15,8 +15,7 @@ export const seedDefaultUser = internalMutation({
     return await ctx.db.insert("users", {
       name: "Supply Chain Staff",
       email: "staff@neatpo.app",
-      passwordHash:
-        "$2b$10$placeholder_hash_for_neatpo2026",
+      passwordHash: "$2b$10$placeholder_hash_for_neatpo2026",
       role: "staff",
       createdAt: Date.now(),
     });

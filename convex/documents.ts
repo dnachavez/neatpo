@@ -21,7 +21,7 @@ export const listByStatus = query({
       v.literal("uploaded"),
       v.literal("processing"),
       v.literal("extracted"),
-      v.literal("matched")
+      v.literal("matched"),
     ),
   },
   handler: async (ctx, args) => {
@@ -55,7 +55,7 @@ export const updateStatus = mutation({
       v.literal("uploaded"),
       v.literal("processing"),
       v.literal("extracted"),
-      v.literal("matched")
+      v.literal("matched"),
     ),
   },
   handler: async (ctx, args) => {

@@ -12,7 +12,7 @@ export type AuthUser = {
 
 export const authUserAtom = atomWithStorage<AuthUser | null>(
   "neatpo_auth_user",
-  null
+  null,
 );
 
 export const isAuthenticatedAtom = atom((get) => get(authUserAtom) !== null);

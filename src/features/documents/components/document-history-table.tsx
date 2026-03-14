@@ -1,12 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -133,9 +128,7 @@ export function DocumentHistoryTable() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-neutral-500">
-                  {doc.matchedPO ?? (
-                    <span className="text-neutral-300">—</span>
-                  )}
+                  {doc.matchedPO ?? <span className="text-neutral-300">—</span>}
                 </TableCell>
               </TableRow>
             ))}

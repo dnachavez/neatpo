@@ -28,16 +28,16 @@ export function MatchDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-          render={
-            <Button
-              variant="outline"
-              className="border-neutral-200 text-neutral-500 hover:text-black"
-            />
-          }
-        >
-          <LinkSimple size={16} />
-          Match to PO
-        </DialogTrigger>
+        render={
+          <Button
+            variant="outline"
+            className="border-neutral-200 text-neutral-500 hover:text-black"
+          />
+        }
+      >
+        <LinkSimple size={16} />
+        Match to PO
+      </DialogTrigger>
       <DialogContent className="border-neutral-200 bg-white sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl font-normal tracking-tight">
