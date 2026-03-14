@@ -10,14 +10,19 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
+  suppliers: defineTable({
+    name: v.string(),
+  }).index("by_name", ["name"]),
+
   purchaseOrders: defineTable({
     poNumber: v.string(),
     supplier: v.string(),
+    orderDate: v.number(),
+    expectedDeliveryDate: v.number(),
     items: v.array(
       v.object({
-        description: v.string(),
+        product: v.string(),
         quantity: v.number(),
-        unitPrice: v.number(),
       }),
     ),
     status: v.union(
@@ -25,7 +30,6 @@ export default defineSchema({
       v.literal("processing"),
       v.literal("completed"),
     ),
-    totalAmount: v.number(),
     userId: v.id("users"),
     createdAt: v.number(),
   })

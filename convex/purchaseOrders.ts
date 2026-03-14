@@ -1,5 +1,5 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 
 export const list = query({
   args: {},
@@ -35,17 +35,28 @@ export const create = mutation({
   args: {
     poNumber: v.string(),
     supplier: v.string(),
+    orderDate: v.number(),
+    expectedDeliveryDate: v.number(),
     items: v.array(
       v.object({
-        description: v.string(),
+        product: v.string(),
         quantity: v.number(),
-        unitPrice: v.number(),
       }),
     ),
-    totalAmount: v.number(),
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("purchaseOrders")
+      .withIndex("by_poNumber", (q) => q.eq("poNumber", args.poNumber))
+      .first();
+
+    if (existing) {
+      throw new ConvexError(
+        `Purchase order number "${args.poNumber}" already exists.`,
+      );
+    }
+
     return await ctx.db.insert("purchaseOrders", {
       ...args,
       status: "draft",

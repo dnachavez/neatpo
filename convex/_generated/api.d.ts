@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as documents from "../documents.js";
 import type * as purchaseOrders from "../purchaseOrders.js";
 import type * as seed from "../seed.js";
+import type * as suppliers from "../suppliers.js";
 import type * as users from "../users.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   documents: typeof documents;
   purchaseOrders: typeof purchaseOrders;
   seed: typeof seed;
+  suppliers: typeof suppliers;
   users: typeof users;
 }>;
 

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { ProgressBarProvider } from "@/components/progress-bar-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
           <ProgressBarProvider>
             <TooltipProvider>{children}</TooltipProvider>
           </ProgressBarProvider>
+          <Toaster />
         </ConvexClientProvider>
       </body>
     </html>

@@ -1,7 +1,10 @@
 "use client";
 
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -11,68 +14,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface PurchaseOrder {
-  id: string;
-  poNumber: string;
-  supplier: string;
-  status: "draft" | "processing" | "completed";
-  totalAmount: number;
-  createdAt: string;
-}
+type PoStatus = "draft" | "processing" | "completed";
 
-const sampleOrders: PurchaseOrder[] = [
-  {
-    id: "1",
-    poNumber: "PO-2026-001",
-    supplier: "Maersk Logistics",
-    status: "completed",
-    totalAmount: 24500.0,
-    createdAt: "Mar 15, 2026",
-  },
-  {
-    id: "2",
-    poNumber: "PO-2026-002",
-    supplier: "DHL Supply Chain",
-    status: "processing",
-    totalAmount: 18200.0,
-    createdAt: "Mar 14, 2026",
-  },
-  {
-    id: "3",
-    poNumber: "PO-2026-003",
-    supplier: "FedEx Freight",
-    status: "draft",
-    totalAmount: 9750.0,
-    createdAt: "Mar 13, 2026",
-  },
-  {
-    id: "4",
-    poNumber: "PO-2026-004",
-    supplier: "CMA CGM Group",
-    status: "completed",
-    totalAmount: 32100.0,
-    createdAt: "Mar 12, 2026",
-  },
-  {
-    id: "5",
-    poNumber: "PO-2026-005",
-    supplier: "Kuehne + Nagel",
-    status: "processing",
-    totalAmount: 14800.0,
-    createdAt: "Mar 11, 2026",
-  },
-];
-
-const statusVariant: Record<
-  PurchaseOrder["status"],
-  "default" | "secondary" | "outline"
-> = {
+const statusVariant: Record<PoStatus, "default" | "secondary" | "outline"> = {
   draft: "outline",
   processing: "secondary",
   completed: "default",
 };
 
+function formatDate(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function TableSkeleton() {
+  return (
+    <div className="space-y-3 p-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Skeleton key={i} className="h-10 w-full" />
+      ))}
+    </div>
+  );
+}
+
 export function PurchaseOrdersTable() {
+  const orders = useQuery(api.purchaseOrders.list);
+
   return (
     <Card className="border-neutral-200 bg-white shadow-none">
       <CardHeader>
@@ -81,59 +51,64 @@ export function PurchaseOrdersTable() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow className="border-neutral-200 hover:bg-transparent">
-              <TableHead className="text-xs font-medium text-neutral-400">
-                PO Number
-              </TableHead>
-              <TableHead className="text-xs font-medium text-neutral-400">
-                Supplier
-              </TableHead>
-              <TableHead className="text-xs font-medium text-neutral-400">
-                Status
-              </TableHead>
-              <TableHead className="text-right text-xs font-medium text-neutral-400">
-                Amount
-              </TableHead>
-              <TableHead className="text-right text-xs font-medium text-neutral-400">
-                Date
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sampleOrders.map((order) => (
-              <TableRow
-                key={order.id}
-                className="border-neutral-100 hover:bg-neutral-50"
-              >
-                <TableCell className="text-sm font-medium text-black">
-                  {order.poNumber}
-                </TableCell>
-                <TableCell className="text-sm text-neutral-600">
-                  {order.supplier}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={statusVariant[order.status]}
-                    className="text-[11px] font-medium capitalize"
-                  >
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right text-sm text-black tabular-nums">
-                  $
-                  {order.totalAmount.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                  })}
-                </TableCell>
-                <TableCell className="text-right text-sm text-neutral-400">
-                  {order.createdAt}
-                </TableCell>
+        {orders === undefined ? (
+          <TableSkeleton />
+        ) : orders.length === 0 ? (
+          <p className="py-8 text-center text-sm text-neutral-400">
+            No purchase orders yet. Create one to get started.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-neutral-200 hover:bg-transparent">
+                <TableHead className="text-xs font-medium text-neutral-400">
+                  PO Number
+                </TableHead>
+                <TableHead className="text-xs font-medium text-neutral-400">
+                  Supplier
+                </TableHead>
+                <TableHead className="text-xs font-medium text-neutral-400">
+                  Status
+                </TableHead>
+                <TableHead className="text-xs font-medium text-neutral-400">
+                  Order Date
+                </TableHead>
+                <TableHead className="text-right text-xs font-medium text-neutral-400">
+                  Expected Delivery
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow
+                  key={order._id}
+                  className="border-neutral-100 hover:bg-neutral-50"
+                >
+                  <TableCell className="text-sm font-medium text-black">
+                    {order.poNumber}
+                  </TableCell>
+                  <TableCell className="text-sm text-neutral-600">
+                    {order.supplier}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={statusVariant[order.status]}
+                      className="text-[11px] font-medium capitalize"
+                    >
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm text-neutral-400 tabular-nums">
+                    {formatDate(order.orderDate)}
+                  </TableCell>
+                  <TableCell className="text-right text-sm text-neutral-400 tabular-nums">
+                    {formatDate(order.expectedDeliveryDate)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );
