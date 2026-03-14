@@ -10,6 +10,8 @@
 
 import type * as auth from "../auth.js";
 import type * as documents from "../documents.js";
+import type * as ocr from "../ocr.js";
+import type * as ocrResults from "../ocrResults.js";
 import type * as purchaseOrders from "../purchaseOrders.js";
 import type * as seed from "../seed.js";
 import type * as suppliers from "../suppliers.js";
@@ -24,6 +26,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   documents: typeof documents;
+  ocr: typeof ocr;
+  ocrResults: typeof ocrResults;
   purchaseOrders: typeof purchaseOrders;
   seed: typeof seed;
   suppliers: typeof suppliers;

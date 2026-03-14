@@ -102,13 +102,13 @@ describe("createPoSchema", () => {
   });
 
   it("rejects when orderDate is missing", () => {
-    const { orderDate, ...data } = validData;
+    const data = { ...validData, orderDate: undefined };
     const result = createPoSchema.safeParse(data);
     expect(result.success).toBe(false);
   });
 
   it("rejects when expectedDeliveryDate is missing", () => {
-    const { expectedDeliveryDate, ...data } = validData;
+    const data = { ...validData, expectedDeliveryDate: undefined };
     const result = createPoSchema.safeParse(data);
     expect(result.success).toBe(false);
   });

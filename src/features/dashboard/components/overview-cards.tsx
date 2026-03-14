@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import {
   FileText,
   Scan,
@@ -8,41 +10,39 @@ import {
 } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface StatCard {
-  title: string;
-  value: string;
-  description: string;
-  icon: React.ElementType;
-}
-
-const stats: StatCard[] = [
-  {
-    title: "Total POs",
-    value: "—",
-    description: "Purchase orders created",
-    icon: FileText,
-  },
-  {
-    title: "Documents Processed",
-    value: "—",
-    description: "Successfully extracted",
-    icon: CheckCircle,
-  },
-  {
-    title: "Pending OCR",
-    value: "—",
-    description: "Awaiting extraction",
-    icon: CircleNotch,
-  },
-  {
-    title: "Matched Documents",
-    value: "—",
-    description: "Linked to purchase orders",
-    icon: Scan,
-  },
-];
-
 export function OverviewCards() {
+  const purchaseOrders = useQuery(api.purchaseOrders.list);
+  const documentCounts = useQuery(api.documents.countByStatus);
+
+  const stats = [
+    {
+      title: "Total POs",
+      value: purchaseOrders?.length ?? 0,
+      description: "Purchase orders created",
+      icon: FileText,
+    },
+    {
+      title: "Documents Processed",
+      value:
+        (documentCounts?.extracted ?? 0) + (documentCounts?.matched ?? 0),
+      description: "Successfully extracted",
+      icon: CheckCircle,
+    },
+    {
+      title: "Pending OCR",
+      value:
+        (documentCounts?.uploaded ?? 0) + (documentCounts?.processing ?? 0),
+      description: "Awaiting extraction",
+      icon: CircleNotch,
+    },
+    {
+      title: "Matched Documents",
+      value: documentCounts?.matched ?? 0,
+      description: "Linked to purchase orders",
+      icon: Scan,
+    },
+  ];
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, useWatch, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
@@ -71,7 +71,6 @@ export function CreatePoDialog() {
     handleSubmit,
     control,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = form;
 
@@ -80,7 +79,7 @@ export function CreatePoDialog() {
     name: "items",
   });
 
-  const orderDate = watch("orderDate");
+  const orderDate = useWatch({ control, name: "orderDate" });
 
   async function onSubmit(data: CreatePoFormData) {
     if (data.expectedDeliveryDate < data.orderDate) {

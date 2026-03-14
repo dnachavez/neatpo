@@ -39,7 +39,7 @@ export default defineSchema({
 
   documents: defineTable({
     filename: v.string(),
-    fileStorageId: v.optional(v.string()),
+    fileStorageId: v.string(),
     mimeType: v.string(),
     status: v.union(
       v.literal("uploaded"),
@@ -47,6 +47,8 @@ export default defineSchema({
       v.literal("extracted"),
       v.literal("matched"),
     ),
+    documentType: v.optional(v.string()),
+    extractedData: v.optional(v.string()),
     purchaseOrderId: v.optional(v.id("purchaseOrders")),
     userId: v.id("users"),
     uploadedAt: v.number(),

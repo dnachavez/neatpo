@@ -1,65 +1,61 @@
 "use client";
 
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import { Spinner } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
-interface ProcessingItem {
-  id: string;
-  filename: string;
-  progress: number;
-  stage: string;
-}
-
-const processingItems: ProcessingItem[] = [
-  {
-    id: "1",
-    filename: "customs_declaration_0315.pdf",
-    progress: 75,
-    stage: "Extracting data…",
-  },
-  {
-    id: "2",
-    filename: "shipping_manifest_q1.pdf",
-    progress: 40,
-    stage: "Running OCR…",
-  },
-  {
-    id: "3",
-    filename: "freight_invoice_march.pdf",
-    progress: 10,
-    stage: "Uploading…",
-  },
-];
+const stageLabel: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+  uploaded: { label: "Queued", variant: "outline" },
+  processing: { label: "Running OCR…", variant: "secondary" },
+};
 
 export function ProcessingStatus() {
+  const processingDocs = useQuery(api.documents.listProcessing);
+
+  const hasItems = processingDocs && processingDocs.length > 0;
+
   return (
     <Card className="border-neutral-200 bg-white shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-serif text-lg font-normal tracking-tight text-black">
-          <Spinner size={16} className="animate-spin text-neutral-400" />
+          {hasItems && (
+            <Spinner size={16} className="animate-spin text-neutral-400" />
+          )}
           Processing Queue
+          {hasItems && (
+            <Badge variant="secondary" className="text-[10px] font-normal">
+              {processingDocs.length}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {processingItems.length === 0 ? (
+        {processingDocs === undefined ? (
+          <p className="py-4 text-center text-sm text-neutral-400">
+            Loading…
+          </p>
+        ) : processingDocs.length === 0 ? (
           <p className="py-4 text-center text-sm text-neutral-400">
             No documents currently processing
           </p>
         ) : (
-          <div className="space-y-4">
-            {processingItems.map((item) => (
-              <div key={item.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-black">{item.filename}</span>
-                  <span className="text-[11px] text-neutral-400">
-                    {item.stage}
-                  </span>
-                </div>
-                <Progress
-                  value={item.progress}
-                  className="h-1.5 bg-neutral-100 [&>div]:bg-black"
-                />
+          <div className="space-y-3">
+            {processingDocs.map((doc) => (
+              <div
+                key={doc._id}
+                className="flex items-center justify-between rounded-md border border-neutral-100 px-3 py-2"
+              >
+                <span className="truncate pr-3 text-sm text-black">
+                  {doc.filename}
+                </span>
+                <Badge
+                  variant={stageLabel[doc.status]?.variant ?? "outline"}
+                  className="shrink-0 text-[10px]"
+                >
+                  {stageLabel[doc.status]?.label ?? doc.status}
+                </Badge>
               </div>
             ))}
           </div>

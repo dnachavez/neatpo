@@ -31,6 +31,15 @@ export const listByStatus = query({
   },
 });
 
+export const searchByPoNumber = query({
+  args: { query: v.string() },
+  handler: async (ctx, args) => {
+    const all = await ctx.db.query("purchaseOrders").collect();
+    const q = args.query.toLowerCase();
+    return all.filter((po) => po.poNumber.toLowerCase().includes(q));
+  },
+});
+
 export const create = mutation({
   args: {
     poNumber: v.string(),
@@ -62,6 +71,35 @@ export const create = mutation({
       status: "draft",
       createdAt: Date.now(),
     });
+  },
+});
+
+export const update = mutation({
+  args: {
+    id: v.id("purchaseOrders"),
+    supplier: v.optional(v.string()),
+    orderDate: v.optional(v.number()),
+    expectedDeliveryDate: v.optional(v.number()),
+    items: v.optional(
+      v.array(
+        v.object({
+          product: v.string(),
+          quantity: v.number(),
+        }),
+      ),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...fields } = args;
+    const updates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (value !== undefined) {
+        updates[key] = value;
+      }
+    }
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(id, updates);
+    }
   },
 });
 

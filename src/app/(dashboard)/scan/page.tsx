@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { UploadZone } from "@/features/documents";
+import { UploadZone, DocumentHistoryTable } from "@/features/documents";
 
 export const metadata: Metadata = {
   title: "Scan & Upload — NeatPO",
@@ -20,6 +20,8 @@ export default function ScanPage() {
       </div>
 
       <UploadZone />
+
+      <DocumentHistoryTable />
     </div>
   );
 }
