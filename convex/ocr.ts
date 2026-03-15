@@ -4,6 +4,30 @@ import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as XLSX from "xlsx";
+
+const SPREADSHEET_MIME_TYPES = [
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  "application/vnd.ms-excel", // .xls
+  "text/csv", // .csv
+];
+
+/**
+ * Convert an Excel/CSV file buffer to a CSV text representation
+ * so Gemini can process it as text content.
+ */
+function convertSpreadsheetToText(buffer: ArrayBuffer): string {
+  const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
+  const sheets: string[] = [];
+
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    const csv = XLSX.utils.sheet_to_csv(sheet);
+    sheets.push(`=== Sheet: ${sheetName} ===\n${csv}`);
+  }
+
+  return sheets.join("\n\n");
+}
 
 const EXTRACTION_PROMPT = `You are a logistics document analysis expert. Analyze the provided document image/PDF and extract structured data.
 
@@ -60,21 +84,38 @@ export const processDocument = action({
 
       const fileResponse = await fetch(fileUrl);
       const fileBuffer = await fileResponse.arrayBuffer();
-      const base64Data = Buffer.from(fileBuffer).toString("base64");
 
       // Call Gemini API
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      const result = await model.generateContent([
-        EXTRACTION_PROMPT,
-        {
-          inlineData: {
-            mimeType: args.mimeType,
-            data: base64Data,
+      // Build content parts based on MIME type
+      const isSpreadsheet = SPREADSHEET_MIME_TYPES.includes(args.mimeType);
+      let contentParts: Parameters<typeof model.generateContent>[0];
+
+      if (isSpreadsheet) {
+        // Convert spreadsheet to CSV text and send as text content
+        const spreadsheetText = convertSpreadsheetToText(fileBuffer);
+        contentParts = [
+          EXTRACTION_PROMPT +
+            "\n\nHere is the spreadsheet content:\n\n" +
+            spreadsheetText,
+        ];
+      } else {
+        // Send binary data (images, PDFs) as inline data
+        const base64Data = Buffer.from(fileBuffer).toString("base64");
+        contentParts = [
+          EXTRACTION_PROMPT,
+          {
+            inlineData: {
+              mimeType: args.mimeType,
+              data: base64Data,
+            },
           },
-        },
-      ]);
+        ];
+      }
+
+      const result = await model.generateContent(contentParts);
 
       const responseText = result.response.text();
 
