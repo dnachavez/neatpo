@@ -3,6 +3,7 @@ import {
   OverviewCards,
   RecentActivity,
   ProcessingStatus,
+  PoSection,
 } from "@/features/dashboard";
 
 export const metadata: Metadata = {
@@ -29,6 +30,9 @@ export default function DashboardPage() {
         <RecentActivity />
         <ProcessingStatus />
       </div>
+
+      <PoSection />
     </div>
   );
 }
+

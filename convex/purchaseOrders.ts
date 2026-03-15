@@ -49,6 +49,22 @@ export const searchByTrackingNumber = query({
   },
 });
 
+export const search = query({
+  args: { query: v.string() },
+  handler: async (ctx, args) => {
+    const all = await ctx.db
+      .query("purchaseOrders")
+      .order("desc")
+      .collect();
+    const q = args.query.toLowerCase();
+    return all.filter(
+      (po) =>
+        po.poNumber.toLowerCase().includes(q) ||
+        po.supplier.toLowerCase().includes(q),
+    );
+  },
+});
+
 export const create = mutation({
   args: {
     poNumber: v.string(),
