@@ -4,84 +4,107 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import {
   FileText,
-  Scan,
-  CircleNotch,
   CheckCircle,
-  ListChecks,
-  LinkSimple,
+  CurrencyDollar,
+  Truck,
+  Files,
+  CircleNotch,
 } from "@phosphor-icons/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function OverviewCards() {
-  const purchaseOrders = useQuery(api.purchaseOrders.list);
-  const documentCounts = useQuery(api.documents.countByStatus);
+  const analytics = useQuery(api.purchaseOrders.analytics);
+  const docCounts = useQuery(api.documents.countByStatus);
 
-  const completedPOs =
-    purchaseOrders?.filter((po) => po.status === "completed").length ?? 0;
+  const isLoading = analytics === undefined || docCounts === undefined;
 
-  const stats = [
+  const cards = [
     {
       title: "Total POs",
-      value: purchaseOrders?.length ?? 0,
-      description: "Purchase orders created",
+      value: analytics?.totalPOs ?? 0,
       icon: FileText,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
     },
     {
-      title: "Completed POs",
-      value: completedPOs,
-      description: "Fulfilled purchase orders",
-      icon: ListChecks,
-    },
-    {
-      title: "Documents Processed",
-      value:
-        (documentCounts?.extracted ?? 0) + (documentCounts?.matched ?? 0),
-      description: "Successfully extracted",
+      title: "Completed",
+      value: analytics?.byStatus.completed ?? 0,
       icon: CheckCircle,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+    },
+    {
+      title: "Total Spend",
+      value: analytics
+        ? `$${analytics.totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : "$0.00",
+      icon: CurrencyDollar,
+      color: "text-violet-600",
+      bg: "bg-violet-50",
+    },
+    {
+      title: "Avg Delivery Fee",
+      value: analytics
+        ? `$${analytics.avgDeliveryFee.toFixed(2)}`
+        : "$0.00",
+      icon: Truck,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+    },
+    {
+      title: "Docs Processed",
+      value: docCounts
+        ? docCounts.extracted + docCounts.matched
+        : 0,
+      icon: Files,
+      color: "text-teal-600",
+      bg: "bg-teal-50",
     },
     {
       title: "Pending OCR",
-      value:
-        (documentCounts?.uploaded ?? 0) + (documentCounts?.processing ?? 0),
-      description: "Awaiting extraction",
+      value: docCounts
+        ? docCounts.uploaded + docCounts.processing
+        : 0,
       icon: CircleNotch,
-    },
-    {
-      title: "Total Scanned",
-      value: documentCounts?.total ?? 0,
-      description: "Documents scanned overall",
-      icon: Scan,
-    },
-    {
-      title: "Matched Documents",
-      value: documentCounts?.matched ?? 0,
-      description: "Linked to purchase orders",
-      icon: LinkSimple,
+      color: "text-neutral-600",
+      bg: "bg-neutral-100",
     },
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {stats.map((stat) => (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {cards.map((card) => (
         <Card
-          key={stat.title}
+          key={card.title}
           className="border-neutral-200 bg-white shadow-none"
         >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-neutral-500">
-              {stat.title}
-            </CardTitle>
-            <stat.icon size={18} className="text-neutral-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="font-serif text-3xl tracking-tight text-black">
-              {stat.value}
-            </div>
-            <p className="mt-1 text-xs text-neutral-400">{stat.description}</p>
+          <CardContent className="p-4">
+            {isLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-7 w-12" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`flex h-7 w-7 items-center justify-center rounded-md ${card.bg}`}
+                  >
+                    <card.icon size={14} className={card.color} weight="bold" />
+                  </div>
+                  <span className="text-[11px] font-medium text-neutral-400">
+                    {card.title}
+                  </span>
+                </div>
+                <p className="mt-2 text-xl font-semibold tracking-tight text-black">
+                  {card.value}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       ))}
     </div>
   );
 }
-

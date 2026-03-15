@@ -3,7 +3,13 @@
 import { useState, useCallback, useRef } from "react";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { CloudArrowUp, File, X, Camera, CircleNotch } from "@phosphor-icons/react";
+import {
+  CloudArrowUp,
+  File,
+  X,
+  Camera,
+  CircleNotch,
+} from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +22,13 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 interface SelectedFile {
   file: File;
   id: string;
-  status: "pending" | "uploading" | "uploaded" | "processing" | "extracted" | "error";
+  status:
+    | "pending"
+    | "uploading"
+    | "uploaded"
+    | "processing"
+    | "extracted"
+    | "error";
   documentId?: Id<"documents">;
   error?: string;
 }
@@ -25,7 +37,8 @@ export function UploadZone() {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [reviewDocumentId, setReviewDocumentId] = useState<Id<"documents"> | null>(null);
+  const [reviewDocumentId, setReviewDocumentId] =
+    useState<Id<"documents"> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentUser = useQuery(api.users.getByEmail, {
@@ -64,8 +77,12 @@ export function UploadZone() {
 
   function addFiles(files: File[]) {
     const validFiles = files.filter((file) => {
-      const isValidType = ["application/pdf", "image/jpeg", "image/png"].includes(file.type);
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      const isValidType = [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+      ].includes(file.type);
+      const isValidSize = file.size <= 10 * 1024 * 1024;
       if (!isValidType) {
         toast.error(`"${file.name}" is not a supported format`, {
           description: "Please upload PDF, JPG, or PNG files.",
@@ -96,10 +113,7 @@ export function UploadZone() {
     setCameraOpen(false);
   }
 
-  function updateFileStatus(
-    id: string,
-    update: Partial<SelectedFile>,
-  ) {
+  function updateFileStatus(id: string, update: Partial<SelectedFile>) {
     setSelectedFiles((prev) =>
       prev.map((f) => (f.id === id ? { ...f, ...update } : f)),
     );
@@ -117,7 +131,6 @@ export function UploadZone() {
 
     for (const sf of pendingFiles) {
       try {
-        // Step 1: Upload to Convex storage
         updateFileStatus(sf.id, { status: "uploading" });
 
         const uploadUrl = await generateUploadUrl();
@@ -133,7 +146,6 @@ export function UploadZone() {
 
         const { storageId } = await uploadResult.json();
 
-        // Step 2: Create document record
         const documentId = await createDocument({
           filename: sf.file.name,
           fileStorageId: storageId,
@@ -141,16 +153,12 @@ export function UploadZone() {
           userId: currentUser._id,
         });
 
-        updateFileStatus(sf.id, {
-          status: "uploaded",
-          documentId,
-        });
+        updateFileStatus(sf.id, { status: "uploaded", documentId });
 
         toast.success(`"${sf.file.name}" uploaded successfully`, {
           description: "Starting OCR processing…",
         });
 
-        // Step 3: Trigger OCR processing
         updateFileStatus(sf.id, { status: "processing" });
 
         const ocrResult = await processDocument({
@@ -162,9 +170,10 @@ export function UploadZone() {
         if (ocrResult.success) {
           updateFileStatus(sf.id, { status: "extracted" });
           toast.success(`OCR complete for "${sf.file.name}"`, {
-            description: "Review extracted data to match with a purchase order.",
+            description:
+              "Review extracted data to auto-fill your purchase order.",
             action: {
-              label: "Review",
+              label: "Review & Auto-fill",
               onClick: () => setReviewDocumentId(documentId),
             },
           });
@@ -225,7 +234,10 @@ export function UploadZone() {
             <CloudArrowUp
               size={40}
               weight="thin"
-              className={cn("mb-3 text-neutral-300", isDragging && "text-black")}
+              className={cn(
+                "mb-3 text-neutral-300",
+                isDragging && "text-black",
+              )}
             />
             <p className="text-sm text-neutral-500">
               Drag and drop your logistics documents here
@@ -271,8 +283,12 @@ export function UploadZone() {
                   className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2"
                 >
                   <div className="flex items-center gap-2">
-                    {sf.status === "processing" || sf.status === "uploading" ? (
-                      <CircleNotch size={16} className="animate-spin text-neutral-400" />
+                    {sf.status === "processing" ||
+                    sf.status === "uploading" ? (
+                      <CircleNotch
+                        size={16}
+                        className="animate-spin text-neutral-400"
+                      />
                     ) : (
                       <File size={16} className="text-neutral-400" />
                     )}
@@ -295,7 +311,7 @@ export function UploadZone() {
                         className="text-xs text-neutral-500 hover:text-black"
                         onClick={() => setReviewDocumentId(sf.documentId!)}
                       >
-                        Review
+                        Review & Auto-fill
                       </Button>
                     )}
                     {(sf.status === "pending" || sf.status === "error") && (

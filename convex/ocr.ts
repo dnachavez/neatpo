@@ -24,11 +24,12 @@ Return ONLY a valid JSON object with the following structure (use null for field
   "orderDate": "YYYY-MM-DD or null",
   "deliveryDate": "YYYY-MM-DD or null",
   "totalAmount": "string or null",
+  "deliveryFee": number or null,
   "currency": "string or null",
   "notes": "string or null"
 }
 
-Be thorough and extract as much information as possible. For items, extract all line items you can find with their product names and quantities. If quantities are not clear, use 1 as default.`;
+Be thorough and extract as much information as possible. For items, extract all line items you can find with their product names and quantities. If quantities are not clear, use 1 as default. For deliveryFee, extract any shipping, freight, or delivery charges as a numeric value. For currency, extract the currency code (e.g. "USD", "PHP", "EUR").`;
 
 export const processDocument = action({
   args: {
@@ -85,7 +86,7 @@ export const processDocument = action({
         const parsed = JSON.parse(jsonString);
         extractedJson = JSON.stringify(parsed);
       } catch {
-        // If parsing fails, store raw response
+        // If parsing fails, store raw response as notes
         extractedJson = JSON.stringify({
           documentType: "other",
           trackingNumber: null,
@@ -96,6 +97,7 @@ export const processDocument = action({
           orderDate: null,
           deliveryDate: null,
           totalAmount: null,
+          deliveryFee: null,
           currency: null,
           notes: responseText,
         });

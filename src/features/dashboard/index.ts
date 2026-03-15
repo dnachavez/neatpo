@@ -1,4 +1,5 @@
 export { OverviewCards } from "./components/overview-cards";
-export { RecentActivity } from "./components/recent-activity";
+export { DeliveryPredictions } from "./components/delivery-predictions";
+export { SpendAnalytics } from "./components/spend-analytics";
 export { ProcessingStatus } from "./components/processing-status";
-export { PoSection } from "./components/po-section";
+export { RecentActivity } from "./components/recent-activity";

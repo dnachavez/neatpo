@@ -28,7 +28,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { extractedDataSchema, type ExtractedData } from "../types/document-schema";
+import {
+  extractedDataSchema,
+  type ExtractedData,
+} from "../types/document-schema";
 import { findAutoMatch, type MatchStrategy } from "../lib/auto-match";
 
 const reviewFormSchema = z.object({
@@ -46,6 +49,8 @@ const reviewFormSchema = z.object({
   orderDate: z.string(),
   deliveryDate: z.string(),
   totalAmount: z.string(),
+  deliveryFee: z.number().nullable(),
+  currency: z.string(),
   notes: z.string(),
 });
 
@@ -67,7 +72,6 @@ const documentTypeLabels: Record<string, string> = {
   other: "Other",
 };
 
-/** Converts "YYYY-MM-DD" string to a Unix timestamp (ms). Returns undefined if invalid. */
 function parseDateToTimestamp(dateStr: string): number | undefined {
   const ms = new Date(dateStr).getTime();
   return Number.isNaN(ms) ? undefined : ms;
@@ -101,6 +105,8 @@ export function OcrReviewDialog({
       orderDate: "",
       deliveryDate: "",
       totalAmount: "",
+      deliveryFee: null,
+      currency: "",
       notes: "",
     },
   });
@@ -120,7 +126,7 @@ export function OcrReviewDialog({
 
   const documentType = useWatch({ control, name: "documentType" });
 
-  // Compute auto-matched PO from extracted data (PO number → tracking number)
+  // Auto-match PO from extracted data
   const autoMatchResult = (() => {
     if (!document?.extractedData || !purchaseOrders) return null;
     try {
@@ -139,7 +145,6 @@ export function OcrReviewDialog({
   const autoMatchStrategy: MatchStrategy | null =
     autoMatchResult?.strategy ?? null;
 
-  // Effective selection: manual pick takes precedence, then auto-match
   const selectedPoId = manualPoId ?? autoMatchedPoId;
 
   // Parse extracted data and populate form
@@ -154,11 +159,16 @@ export function OcrReviewDialog({
           poNumber: parsed.poNumber ?? "",
           vendorName: parsed.vendorName ?? "",
           documentType: parsed.documentType ?? "other",
-          items: parsed.items.length > 0 ? parsed.items : [{ product: "", quantity: 1 }],
+          items:
+            parsed.items.length > 0
+              ? parsed.items
+              : [{ product: "", quantity: 1 }],
           shippingDetails: parsed.shippingDetails ?? "",
           orderDate: parsed.orderDate ?? "",
           deliveryDate: parsed.deliveryDate ?? "",
           totalAmount: parsed.totalAmount ?? "",
+          deliveryFee: parsed.deliveryFee ?? null,
+          currency: parsed.currency ?? "",
           notes: parsed.notes ?? "",
         });
       } catch {
@@ -167,9 +177,10 @@ export function OcrReviewDialog({
     }
   }, [document?.extractedData, reset]);
 
-  const filteredPOs = purchaseOrders?.filter((po) =>
-    po.poNumber.toLowerCase().includes(poSearchQuery.toLowerCase()) ||
-    po.supplier.toLowerCase().includes(poSearchQuery.toLowerCase()),
+  const filteredPOs = purchaseOrders?.filter(
+    (po) =>
+      po.poNumber.toLowerCase().includes(poSearchQuery.toLowerCase()) ||
+      po.supplier.toLowerCase().includes(poSearchQuery.toLowerCase()),
   );
 
   async function handleSaveOnly(data: ReviewFormData) {
@@ -184,7 +195,8 @@ export function OcrReviewDialog({
         orderDate: data.orderDate || null,
         deliveryDate: data.deliveryDate || null,
         totalAmount: data.totalAmount || null,
-        currency: null,
+        deliveryFee: data.deliveryFee,
+        currency: data.currency || null,
         notes: data.notes || null,
       };
 
@@ -202,9 +214,9 @@ export function OcrReviewDialog({
     }
   }
 
-  async function handleConfirmAndLink(data: ReviewFormData) {
+  async function handleConfirmAndAutoFill(data: ReviewFormData) {
     if (!selectedPoId) {
-      toast.error("Please select a purchase order to link");
+      toast.error("Please select a purchase order to auto-fill");
       return;
     }
 
@@ -220,7 +232,8 @@ export function OcrReviewDialog({
         orderDate: data.orderDate || null,
         deliveryDate: data.deliveryDate || null,
         totalAmount: data.totalAmount || null,
-        currency: null,
+        deliveryFee: data.deliveryFee,
+        currency: data.currency || null,
         notes: data.notes || null,
       };
 
@@ -236,54 +249,46 @@ export function OcrReviewDialog({
         purchaseOrderId: selectedPoId,
       });
 
-      // Auto-fill PO with extracted data
+      // Auto-fill PO fields with extracted data
       const updateFields: Parameters<typeof updatePO>[0] = {
         id: selectedPoId,
       };
 
-      if (data.items.length > 0) {
-        updateFields.items = data.items;
-      }
+      if (data.items.length > 0) updateFields.items = data.items;
+      if (data.vendorName) updateFields.supplier = data.vendorName;
 
-      if (data.vendorName) {
-        updateFields.supplier = data.vendorName;
-      }
-
-      const parsedOrderDate = data.orderDate ? parseDateToTimestamp(data.orderDate) : undefined;
-      if (parsedOrderDate !== undefined) {
+      const parsedOrderDate = data.orderDate
+        ? parseDateToTimestamp(data.orderDate)
+        : undefined;
+      if (parsedOrderDate !== undefined)
         updateFields.orderDate = parsedOrderDate;
-      }
 
-      const parsedDeliveryDate = data.deliveryDate ? parseDateToTimestamp(data.deliveryDate) : undefined;
-      if (parsedDeliveryDate !== undefined) {
+      const parsedDeliveryDate = data.deliveryDate
+        ? parseDateToTimestamp(data.deliveryDate)
+        : undefined;
+      if (parsedDeliveryDate !== undefined)
         updateFields.expectedDeliveryDate = parsedDeliveryDate;
-      }
 
-      if (data.totalAmount) {
-        updateFields.totalAmount = data.totalAmount;
-      }
-
-      if (data.shippingDetails) {
+      if (data.totalAmount) updateFields.totalAmount = data.totalAmount;
+      if (data.deliveryFee !== null)
+        updateFields.deliveryFee = data.deliveryFee;
+      if (data.currency) updateFields.currency = data.currency;
+      if (data.shippingDetails)
         updateFields.shippingDetails = data.shippingDetails;
-      }
-
-      if (data.trackingNumber) {
+      if (data.trackingNumber)
         updateFields.trackingNumber = data.trackingNumber;
-      }
-
-      if (data.notes) {
-        updateFields.notes = data.notes;
-      }
+      if (data.notes) updateFields.notes = data.notes;
 
       await updatePO(updateFields);
 
-      toast.success("Document linked to purchase order", {
-        description: "PO fields have been auto-filled with extracted data.",
+      toast.success("Purchase order auto-filled", {
+        description: "PO fields have been updated with extracted data.",
       });
       onOpenChange(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Linking failed";
-      toast.error("Failed to link document", { description: message });
+      const message =
+        error instanceof Error ? error.message : "Auto-fill failed";
+      toast.error("Failed to auto-fill", { description: message });
     }
   }
 
@@ -294,14 +299,14 @@ export function OcrReviewDialog({
       <DialogContent className="max-h-[85vh] overflow-y-auto border-neutral-200 bg-white sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl font-normal tracking-tight">
-            Review Extracted Data
+            Review & Auto-fill PO
           </DialogTitle>
           <DialogDescription className="text-sm text-neutral-400">
-            Review and edit the data extracted from{" "}
+            Review extracted data from{" "}
             <span className="font-medium text-black">
               {document.filename}
             </span>
-            , then link it to a purchase order.
+            , then select a purchase order to auto-fill its fields.
           </DialogDescription>
         </DialogHeader>
 
@@ -359,7 +364,7 @@ export function OcrReviewDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Total Amount</Label>
               <Input
@@ -368,12 +373,30 @@ export function OcrReviewDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Shipping Details</Label>
+              <Label className="text-sm font-medium">Delivery Fee</Label>
               <Input
+                type="number"
+                step="0.01"
                 className="border-neutral-200 bg-white"
-                {...register("shippingDetails")}
+                {...register("deliveryFee", { valueAsNumber: true })}
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Currency</Label>
+              <Input
+                className="border-neutral-200 bg-white"
+                placeholder="USD"
+                {...register("currency")}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Shipping Details</Label>
+            <Input
+              className="border-neutral-200 bg-white"
+              {...register("shippingDetails")}
+            />
           </div>
 
           <Separator className="bg-neutral-200" />
@@ -401,7 +424,8 @@ export function OcrReviewDialog({
                       placeholder="Product / item name"
                       className={cn(
                         "border-neutral-200 bg-white text-sm",
-                        errors.items?.[index]?.product && "border-destructive",
+                        errors.items?.[index]?.product &&
+                          "border-destructive",
                       )}
                       {...register(`items.${index}.product`)}
                     />
@@ -413,7 +437,8 @@ export function OcrReviewDialog({
                       min={1}
                       className={cn(
                         "border-neutral-200 bg-white text-sm",
-                        errors.items?.[index]?.quantity && "border-destructive",
+                        errors.items?.[index]?.quantity &&
+                          "border-destructive",
                       )}
                       {...register(`items.${index}.quantity`, {
                         valueAsNumber: true,
@@ -447,10 +472,10 @@ export function OcrReviewDialog({
 
           <Separator className="bg-neutral-200" />
 
-          {/* PO Matching */}
+          {/* PO Matching — Auto-fill target */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">
-              Link to Purchase Order
+              Select Purchase Order to Auto-fill
             </Label>
             <div className="relative">
               <MagnifyingGlass
@@ -530,10 +555,10 @@ export function OcrReviewDialog({
               type="button"
               disabled={!selectedPoId}
               className="bg-black text-white hover:bg-neutral-800"
-              onClick={handleSubmit(handleConfirmAndLink)}
+              onClick={handleSubmit(handleConfirmAndAutoFill)}
             >
               <LinkSimple size={16} weight="bold" />
-              Confirm & Link to PO
+              Auto-fill PO
             </Button>
           </div>
         </form>

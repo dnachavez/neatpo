@@ -16,6 +16,9 @@ export const createPoBaseSchema = z.object({
     error: "Expected delivery date is required",
   }),
   items: z.array(poItemSchema).min(1, "At least one item is required"),
+  deliveryFee: z.number().optional(),
+  totalAmount: z.string().optional(),
+  currency: z.string().optional(),
 });
 
 export const createPoSchema = createPoBaseSchema.refine(

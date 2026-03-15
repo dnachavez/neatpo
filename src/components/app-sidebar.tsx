@@ -4,6 +4,7 @@ import {
   House,
   FileText,
   Scan,
+  Sliders,
   ClockCounterClockwise,
   SignOut,
 } from "@phosphor-icons/react";
@@ -47,6 +48,11 @@ const navItems = [
     title: "Scan & Upload",
     href: "/scan",
     icon: Scan,
+  },
+  {
+    title: "Fields",
+    href: "/fields",
+    icon: Sliders,
   },
   {
     title: "Document History",

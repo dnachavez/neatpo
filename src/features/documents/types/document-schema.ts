@@ -17,6 +17,7 @@ export const extractedDataSchema = z.object({
   orderDate: z.string().nullable(),
   deliveryDate: z.string().nullable(),
   totalAmount: z.string().nullable(),
+  deliveryFee: z.number().nullable(),
   currency: z.string().nullable(),
   notes: z.string().nullable(),
 });

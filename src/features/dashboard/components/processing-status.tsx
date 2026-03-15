@@ -2,71 +2,66 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { Spinner } from "@phosphor-icons/react";
+import { CircleNotch, File, CheckCircle } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const stageLabel: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  uploaded: { label: "Queued", variant: "outline" },
-  processing: { label: "Running OCR…", variant: "secondary" },
-};
-
 export function ProcessingStatus() {
   const processingDocs = useQuery(api.documents.listProcessing);
-
-  const hasItems = processingDocs && processingDocs.length > 0;
+  const isLoading = processingDocs === undefined;
 
   return (
     <Card className="border-neutral-200 bg-white shadow-none">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-serif text-lg font-normal tracking-tight text-black">
-          {hasItems && (
-            <Spinner size={16} className="animate-spin text-neutral-400" />
-          )}
+        <CardTitle className="font-serif text-lg font-normal tracking-tight text-black">
           Processing Queue
-          {hasItems && (
-            <Badge variant="secondary" className="text-[10px] font-normal">
-              {processingDocs.length}
-            </Badge>
-          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {processingDocs === undefined ? (
-          <div className="space-y-3">
+        {isLoading ? (
+          <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between rounded-md border border-neutral-100 px-3 py-2"
-              >
-                <Skeleton className="h-4 w-36" />
-                <Skeleton className="h-5 w-16 rounded-full" />
-              </div>
+              <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
-        ) : processingDocs.length === 0 ? (
-          <p className="py-4 text-center text-sm text-neutral-400">
-            No documents currently processing
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {processingDocs.map((doc) => (
+        ) : processingDocs && processingDocs.length > 0 ? (
+          <div className="space-y-2">
+            {processingDocs.slice(0, 5).map((doc) => (
               <div
                 key={doc._id}
-                className="flex items-center justify-between rounded-md border border-neutral-100 px-3 py-2"
+                className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2"
               >
-                <span className="truncate pr-3 text-sm text-black">
-                  {doc.filename}
-                </span>
+                <div className="flex items-center gap-2">
+                  {doc.status === "processing" ? (
+                    <CircleNotch
+                      size={14}
+                      className="animate-spin text-blue-500"
+                    />
+                  ) : (
+                    <File size={14} className="text-neutral-400" />
+                  )}
+                  <span className="text-sm text-black">{doc.filename}</span>
+                </div>
                 <Badge
-                  variant={stageLabel[doc.status]?.variant ?? "outline"}
-                  className="shrink-0 text-[10px]"
+                  variant="outline"
+                  className={`text-[10px] ${
+                    doc.status === "processing"
+                      ? "border-blue-200 bg-blue-50 text-blue-700"
+                      : "border-neutral-200 bg-neutral-50 text-neutral-600"
+                  }`}
                 >
-                  {stageLabel[doc.status]?.label ?? doc.status}
+                  {doc.status === "processing" ? "OCR Processing…" : "Queued"}
                 </Badge>
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center py-6 text-center">
+            <CheckCircle size={24} className="mb-2 text-emerald-500" />
+            <p className="text-sm text-neutral-400">
+              All documents processed
+            </p>
           </div>
         )}
       </CardContent>

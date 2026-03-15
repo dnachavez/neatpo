@@ -10,31 +10,48 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
-  suppliers: defineTable({
-    name: v.string(),
-  }).index("by_name", ["name"]),
+  fieldConfigs: defineTable({
+    userId: v.id("users"),
+    label: v.string(),
+    key: v.string(),
+    type: v.union(
+      v.literal("string"),
+      v.literal("number"),
+      v.literal("date"),
+    ),
+    required: v.boolean(),
+    order: v.number(),
+    width: v.union(v.literal("full"), v.literal("half")),
+    isDefault: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_key", ["userId", "key"]),
 
   purchaseOrders: defineTable({
     poNumber: v.string(),
     supplier: v.string(),
     orderDate: v.number(),
     expectedDeliveryDate: v.number(),
+    deliveryFee: v.optional(v.number()),
+    totalAmount: v.optional(v.string()),
+    currency: v.optional(v.string()),
+    shippingDetails: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
+    notes: v.optional(v.string()),
     items: v.array(
       v.object({
         product: v.string(),
         quantity: v.number(),
       }),
     ),
-    totalAmount: v.optional(v.string()),
-    currency: v.optional(v.string()),
-    shippingDetails: v.optional(v.string()),
-    trackingNumber: v.optional(v.string()),
-    notes: v.optional(v.string()),
+    customFields: v.optional(v.string()),
     status: v.union(
       v.literal("draft"),
       v.literal("processing"),
       v.literal("completed"),
     ),
+    sourceDocumentId: v.optional(v.id("documents")),
     userId: v.id("users"),
     createdAt: v.number(),
   })

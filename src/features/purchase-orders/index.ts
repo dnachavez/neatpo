@@ -1,3 +1,2 @@
-export { PurchaseOrdersTable } from "./components/purchase-orders-table";
 export { CreatePoDialog } from "./components/create-po-dialog";
-export { PoDocumentsDrawer } from "./components/po-documents-drawer";
+export { PurchaseOrdersTable } from "./components/purchase-orders-table";

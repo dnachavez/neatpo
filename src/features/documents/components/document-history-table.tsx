@@ -1,19 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { usePaginatedQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import type { Id } from "../../../../convex/_generated/dataModel";
-import { format } from "date-fns";
-import {
-  Eye,
-  FileMagnifyingGlass,
-  MagnifyingGlass,
-} from "@phosphor-icons/react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { formatDistanceToNow } from "date-fns";
+import { MagnifyingGlass } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -29,284 +24,154 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { OcrReviewDialog } from "./ocr-review-dialog";
-import { DocumentViewerDialog } from "./document-viewer-dialog";
 
-type DocumentStatus = "uploaded" | "processing" | "extracted" | "matched";
+type DocStatus = "uploaded" | "processing" | "extracted" | "matched";
 
-const ALL_STATUSES = "all" as const;
-
-const statusLabel: Record<DocumentStatus, string> = {
-  uploaded: "Uploaded",
-  processing: "Processing",
-  extracted: "Extracted",
-  matched: "Matched",
-};
-
-const statusVariant: Record<
-  DocumentStatus,
-  "default" | "secondary" | "outline"
+const statusConfig: Record<
+  DocStatus,
+  { label: string; className: string }
 > = {
-  uploaded: "outline",
-  processing: "secondary",
-  extracted: "secondary",
-  matched: "default",
+  uploaded: {
+    label: "Uploaded",
+    className: "border-neutral-200 bg-neutral-50 text-neutral-600",
+  },
+  processing: {
+    label: "Processing",
+    className: "border-blue-200 bg-blue-50 text-blue-700",
+  },
+  extracted: {
+    label: "Extracted",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  matched: {
+    label: "Matched",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
 };
-
-const PAGE_SIZE = 20;
 
 export function DocumentHistoryTable() {
-  const { results, status, loadMore } = usePaginatedQuery(
-    api.documents.listPaginated,
-    {},
-    { initialNumItems: PAGE_SIZE },
-  );
-
-  const [reviewDocId, setReviewDocId] = useState<Id<"documents"> | null>(null);
-  const [viewerDoc, setViewerDoc] = useState<{
-    storageId: string;
-    filename: string;
-    mimeType: string;
-  } | null>(null);
-
+  const documents = useQuery(api.documents.list);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    DocumentStatus | typeof ALL_STATUSES
-  >(ALL_STATUSES);
+  const [statusFilter, setStatusFilter] = useState<DocStatus | "all">("all");
 
-  const filteredDocuments = useMemo(() => {
-    if (!results) return [];
+  const isLoading = documents === undefined;
 
-    return results.filter((doc) => {
-      // Status filter
-      if (statusFilter !== ALL_STATUSES && doc.status !== statusFilter) {
-        return false;
-      }
-      // Search filter (filename or matched PO number)
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesFilename = doc.filename.toLowerCase().includes(q);
-        const matchesPo = doc.matchedPoNumber
-          ?.toLowerCase()
-          .includes(q);
-        if (!matchesFilename && !matchesPo) return false;
-      }
-      return true;
-    });
-  }, [results, searchQuery, statusFilter]);
-
-  if (status === "LoadingFirstPage") {
-    return (
-      <Card className="border-neutral-200 bg-white shadow-none">
-        <CardHeader>
-          <CardTitle className="font-serif text-lg font-normal tracking-tight text-black">
-            Document History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 p-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-5 w-18 rounded-full" />
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="ml-auto h-4 w-16" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const filtered = documents?.filter((doc) => {
+    const matchesSearch =
+      !searchQuery ||
+      doc.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.matchedPoNumber?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || doc.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
-    <>
-      <Card className="border-neutral-200 bg-white shadow-none">
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="font-serif text-lg font-normal tracking-tight text-black">
-              Document History
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <MagnifyingGlass
-                  size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-                />
-                <Input
-                  placeholder="Search by filename or PO…"
-                  className="h-8 w-56 border-neutral-200 bg-white pl-8 text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(val) =>
-                  setStatusFilter(
-                    val as DocumentStatus | typeof ALL_STATUSES,
-                  )
-                }
-              >
-                <SelectTrigger className="h-8 w-36 border-neutral-200 bg-white text-sm">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="uploaded">Uploaded</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="extracted">Extracted</SelectItem>
-                  <SelectItem value="matched">Matched</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <Card className="border-neutral-200 bg-white shadow-none">
+      <CardHeader>
+        <CardTitle className="font-serif text-lg font-normal tracking-tight text-black">
+          Document History
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <MagnifyingGlass
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+            />
+            <Input
+              placeholder="Search documents…"
+              className="border-neutral-200 bg-white pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          {filteredDocuments.length === 0 ? (
-            <div className="flex items-center justify-center py-12">
-              <p className="text-sm text-neutral-400">
-                {results.length === 0
-                  ? "No documents uploaded yet"
-                  : "No documents match your filters"}
-              </p>
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-neutral-200 hover:bg-transparent">
-                    <TableHead className="text-xs font-medium text-neutral-400">
-                      Filename
-                    </TableHead>
-                    <TableHead className="text-xs font-medium text-neutral-400">
-                      Uploaded
-                    </TableHead>
-                    <TableHead className="text-xs font-medium text-neutral-400">
-                      OCR Status
-                    </TableHead>
-                    <TableHead className="text-xs font-medium text-neutral-400">
-                      Matched PO
-                    </TableHead>
-                    <TableHead className="text-xs font-medium text-neutral-400">
-                      Actions
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDocuments.map((doc) => (
+          <Select
+            value={statusFilter}
+            onValueChange={(val) =>
+              setStatusFilter(val as DocStatus | "all")
+            }
+          >
+            <SelectTrigger className="h-9 w-36 border-neutral-200 bg-white text-sm">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="uploaded">Uploaded</SelectItem>
+              <SelectItem value="processing">Processing</SelectItem>
+              <SelectItem value="extracted">Extracted</SelectItem>
+              <SelectItem value="matched">Matched</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : filtered && filtered.length > 0 ? (
+          <div className="overflow-hidden rounded-md border border-neutral-200">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-neutral-200 bg-neutral-50/50">
+                  <TableHead className="text-xs font-medium text-neutral-500">
+                    Filename
+                  </TableHead>
+                  <TableHead className="text-xs font-medium text-neutral-500">
+                    Status
+                  </TableHead>
+                  <TableHead className="text-xs font-medium text-neutral-500">
+                    Linked PO
+                  </TableHead>
+                  <TableHead className="text-xs font-medium text-neutral-500">
+                    Uploaded
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((doc) => {
+                  const conf = statusConfig[doc.status];
+                  return (
                     <TableRow
                       key={doc._id}
-                      className="border-neutral-100 hover:bg-neutral-50"
+                      className="border-neutral-200"
                     >
-                      <TableCell className="text-sm font-medium text-black">
+                      <TableCell className="text-sm text-black">
                         {doc.filename}
-                      </TableCell>
-                      <TableCell className="text-sm text-neutral-400">
-                        {format(new Date(doc.uploadedAt), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={statusVariant[doc.status]}
-                          className="text-[11px] font-medium"
+                          variant="outline"
+                          className={`text-[10px] ${conf.className}`}
                         >
-                          {statusLabel[doc.status]}
+                          {conf.label}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-neutral-500">
-                        {doc.matchedPoNumber ?? (
-                          <span className="text-neutral-300">—</span>
-                        )}
+                        {doc.matchedPoNumber ?? "—"}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            className="text-neutral-500 hover:text-black"
-                            onClick={() =>
-                              setViewerDoc({
-                                storageId: doc.fileStorageId,
-                                filename: doc.filename,
-                                mimeType: doc.mimeType,
-                              })
-                            }
-                          >
-                            <FileMagnifyingGlass size={14} />
-                            View
-                          </Button>
-                          {(doc.status === "extracted" ||
-                            doc.status === "matched") && (
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              className="text-neutral-500 hover:text-black"
-                              onClick={() => setReviewDocId(doc._id)}
-                            >
-                              <Eye size={14} />
-                              Review
-                            </Button>
-                          )}
-                        </div>
+                      <TableCell className="text-[11px] text-neutral-400">
+                        {formatDistanceToNow(new Date(doc.uploadedAt), {
+                          addSuffix: true,
+                        })}
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {status === "CanLoadMore" && (
-                <div className="flex justify-center pt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-neutral-200 text-sm text-neutral-600"
-                    onClick={() => loadMore(PAGE_SIZE)}
-                  >
-                    Load more
-                  </Button>
-                </div>
-              )}
-              {status === "LoadingMore" && (
-                <div className="space-y-3 pt-4">
-                  {Array.from({ length: 2 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-5 w-18 rounded-full" />
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="ml-auto h-4 w-16" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {reviewDocId && (
-        <OcrReviewDialog
-          documentId={reviewDocId}
-          open={!!reviewDocId}
-          onOpenChange={(open) => {
-            if (!open) setReviewDocId(null);
-          }}
-        />
-      )}
-
-      {viewerDoc && (
-        <DocumentViewerDialog
-          storageId={viewerDoc.storageId}
-          filename={viewerDoc.filename}
-          mimeType={viewerDoc.mimeType}
-          open={!!viewerDoc}
-          onOpenChange={(open) => {
-            if (!open) setViewerDoc(null);
-          }}
-        />
-      )}
-    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <p className="py-8 text-center text-sm text-neutral-400">
+            {searchQuery || statusFilter !== "all"
+              ? "No documents match your filters"
+              : "No documents uploaded yet"}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
