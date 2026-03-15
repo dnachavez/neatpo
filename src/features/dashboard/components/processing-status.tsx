@@ -5,6 +5,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Spinner } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const stageLabel: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   uploaded: { label: "Queued", variant: "outline" },
@@ -33,9 +34,17 @@ export function ProcessingStatus() {
       </CardHeader>
       <CardContent>
         {processingDocs === undefined ? (
-          <p className="py-4 text-center text-sm text-neutral-400">
-            Loading…
-          </p>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-md border border-neutral-100 px-3 py-2"
+              >
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
         ) : processingDocs.length === 0 ? (
           <p className="py-4 text-center text-sm text-neutral-400">
             No documents currently processing

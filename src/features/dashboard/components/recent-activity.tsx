@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { FileText, UploadSimple, ArrowRight } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ActivityItem {
   id: string;
@@ -54,6 +55,8 @@ export function RecentActivity() {
     return items.sort((a, b) => b.sortKey - a.sortKey).slice(0, 8);
   }, [purchaseOrders, documents]);
 
+  const isLoading = purchaseOrders === undefined || documents === undefined;
+
   return (
     <Card className="border-neutral-200 bg-white shadow-none">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -65,7 +68,22 @@ export function RecentActivity() {
         </button>
       </CardHeader>
       <CardContent>
-        {recentItems.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-0">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i}>
+                <div className="flex items-center gap-3 py-3">
+                  <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
+                  <div className="flex flex-1 flex-col gap-1.5">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+                {i < 3 && <Separator className="bg-neutral-100" />}
+              </div>
+            ))}
+          </div>
+        ) : recentItems.length === 0 ? (
           <p className="py-8 text-center text-sm text-neutral-400">
             No recent activity
           </p>

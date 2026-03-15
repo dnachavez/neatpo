@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -61,9 +62,18 @@ export function PoListing({ searchQuery, statusFilter }: PoListingProps) {
 
   if (orders === undefined) {
     return (
-      <p className="py-8 text-center text-sm text-neutral-400">
-        Loading purchase orders…
-      </p>
+      <div className="rounded-md border border-neutral-200">
+        <div className="space-y-3 p-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-5 w-28" />
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="ml-auto h-6 w-20 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
 

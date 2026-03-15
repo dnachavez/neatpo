@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { FileMagnifyingGlass } from "@phosphor-icons/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
   SheetContent,
@@ -83,9 +84,16 @@ export function PoDocumentsDrawer({
 
           <div className="mt-4">
             {documents === undefined ? (
-              <p className="py-8 text-center text-sm text-neutral-400">
-                Loading documents…
-              </p>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="ml-auto h-4 w-12" />
+                  </div>
+                ))}
+              </div>
             ) : documents.length === 0 ? (
               <p className="py-8 text-center text-sm text-neutral-400">
                 No documents linked to this purchase order.

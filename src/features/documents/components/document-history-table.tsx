@@ -29,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { OcrReviewDialog } from "./ocr-review-dialog";
 import { DocumentViewerDialog } from "./document-viewer-dialog";
 
@@ -104,8 +105,16 @@ export function DocumentHistoryTable() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-12">
-            <p className="text-sm text-neutral-400">Loading documents…</p>
+          <div className="space-y-3 p-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-18 rounded-full" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="ml-auto h-4 w-16" />
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -260,10 +269,16 @@ export function DocumentHistoryTable() {
                 </div>
               )}
               {status === "LoadingMore" && (
-                <div className="flex justify-center pt-4">
-                  <p className="text-sm text-neutral-400">
-                    Loading more documents…
-                  </p>
+                <div className="space-y-3 pt-4">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-5 w-18 rounded-full" />
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="ml-auto h-4 w-16" />
+                    </div>
+                  ))}
                 </div>
               )}
             </>
