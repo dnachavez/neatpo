@@ -2,11 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import {
-  ChartBar,
-  Storefront,
-  CurrencyDollar,
-} from "@phosphor-icons/react";
+import { ChartBar, Storefront, CurrencyDollar } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -39,10 +35,7 @@ export function SpendAnalytics() {
     .sort((a, b) => a.month.localeCompare(b.month))
     .slice(-6); // Last 6 months
 
-  const maxMonthCount = Math.max(
-    ...monthEntries.map((e) => e.count),
-    1,
-  );
+  const maxMonthCount = Math.max(...monthEntries.map((e) => e.count), 1);
 
   // Top suppliers by count
   const supplierEntries = Object.entries(analytics.bySupplier)
@@ -55,9 +48,7 @@ export function SpendAnalytics() {
     .slice(0, 5);
 
   const avgPoValue =
-    analytics.totalPOs > 0
-      ? analytics.totalSpend / analytics.totalPOs
-      : 0;
+    analytics.totalPOs > 0 ? analytics.totalSpend / analytics.totalPOs : 0;
 
   return (
     <Card className="border-neutral-200 bg-white shadow-none">

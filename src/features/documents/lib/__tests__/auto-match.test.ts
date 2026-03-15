@@ -35,10 +35,7 @@ describe("findAutoMatch", () => {
   });
 
   it("matches tracking number case-insensitively", () => {
-    const result = findAutoMatch(
-      { trackingNumber: "trk-aaa" },
-      purchaseOrders,
-    );
+    const result = findAutoMatch({ trackingNumber: "trk-aaa" }, purchaseOrders);
     expect(result).toEqual({
       purchaseOrderId: "po-1",
       strategy: "trackingNumber",

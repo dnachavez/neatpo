@@ -18,10 +18,7 @@ export const getById = query({
 export const search = query({
   args: { query: v.string() },
   handler: async (ctx, args) => {
-    const all = await ctx.db
-      .query("purchaseOrders")
-      .order("desc")
-      .collect();
+    const all = await ctx.db.query("purchaseOrders").order("desc").collect();
     const q = args.query.toLowerCase();
     return all.filter(
       (po) =>

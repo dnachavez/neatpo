@@ -1,6 +1,9 @@
 "use client";
 
-import { CreatePoDialog, PurchaseOrdersTable } from "@/features/purchase-orders";
+import {
+  CreatePoDialog,
+  PurchaseOrdersTable,
+} from "@/features/purchase-orders";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function PurchaseOrdersPage() {

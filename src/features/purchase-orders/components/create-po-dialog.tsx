@@ -112,16 +112,16 @@ export function CreatePoDialog() {
     formState: { isSubmitting },
   } = form;
 
-  async function onSubmit(data: Record<string, string | number | Date | undefined>) {
+  async function onSubmit(
+    data: Record<string, string | number | Date | undefined>,
+  ) {
     if (!currentUser?._id) {
       toast.error("Session not found. Please refresh and try again.");
       return;
     }
 
     // Validate required fields
-    const missingRequired = fields.filter(
-      (f) => f.required && !data[f.key],
-    );
+    const missingRequired = fields.filter((f) => f.required && !data[f.key]);
     if (missingRequired.length > 0) {
       toast.error("Missing required fields", {
         description: missingRequired.map((f) => f.label).join(", "),
@@ -130,8 +130,14 @@ export function CreatePoDialog() {
     }
 
     // Extract PO number and supplier — these are special fields
-    const poNumber = String(data["po_number"] ?? data["poNumber"] ?? `PO-${crypto.randomUUID().slice(0, 8)}`);
-    const supplier = String(data["supplier"] ?? data["supplier_name"] ?? "Unknown");
+    const poNumber = String(
+      data["po_number"] ??
+        data["poNumber"] ??
+        `PO-${crypto.randomUUID().slice(0, 8)}`,
+    );
+    const supplier = String(
+      data["supplier"] ?? data["supplier_name"] ?? "Unknown",
+    );
 
     // Extract dates
     const now = new Date().getTime();
@@ -141,12 +147,19 @@ export function CreatePoDialog() {
     for (const field of fields) {
       if (field.type === "date" && data[field.key]) {
         const dateVal = data[field.key];
-        const timestamp = dateVal instanceof Date ? dateVal.getTime() : new Date(String(dateVal)).getTime();
+        const timestamp =
+          dateVal instanceof Date
+            ? dateVal.getTime()
+            : new Date(String(dateVal)).getTime();
         if (!Number.isNaN(timestamp)) {
           if (field.key.includes("order") || field.key.includes("created")) {
             orderDate = timestamp;
           }
-          if (field.key.includes("delivery") || field.key.includes("expected") || field.key.includes("due")) {
+          if (
+            field.key.includes("delivery") ||
+            field.key.includes("expected") ||
+            field.key.includes("due")
+          ) {
             expectedDeliveryDate = timestamp;
           }
         }
@@ -160,8 +173,13 @@ export function CreatePoDialog() {
 
     for (const field of fields) {
       const val = data[field.key];
-      if (field.key.includes("delivery_fee") || field.key.includes("deliveryFee") || field.key.includes("shipping_fee")) {
-        deliveryFee = typeof val === "number" ? val : parseFloat(String(val ?? ""));
+      if (
+        field.key.includes("delivery_fee") ||
+        field.key.includes("deliveryFee") ||
+        field.key.includes("shipping_fee")
+      ) {
+        deliveryFee =
+          typeof val === "number" ? val : parseFloat(String(val ?? ""));
         if (Number.isNaN(deliveryFee)) deliveryFee = undefined;
       }
       if (field.key.includes("currency")) {
@@ -180,7 +198,8 @@ export function CreatePoDialog() {
     for (const field of fields) {
       const val = data[field.key];
       if (val !== undefined && val !== "") {
-        customFields[field.key] = val instanceof Date ? val.toISOString() : String(val);
+        customFields[field.key] =
+          val instanceof Date ? val.toISOString() : String(val);
       }
     }
 
@@ -195,7 +214,10 @@ export function CreatePoDialog() {
         totalAmount,
         currency,
         userId: currentUser._id,
-        customFields: Object.keys(customFields).length > 0 ? JSON.stringify(customFields) : undefined,
+        customFields:
+          Object.keys(customFields).length > 0
+            ? JSON.stringify(customFields)
+            : undefined,
       });
 
       toast.success("Purchase order created", {
@@ -240,9 +262,7 @@ export function CreatePoDialog() {
         {noFields ? (
           <div className="flex flex-col items-center rounded-lg border-2 border-dashed border-neutral-200 py-10">
             <TextT size={32} className="mb-2 text-neutral-200" />
-            <p className="text-sm text-neutral-400">
-              No fields configured yet
-            </p>
+            <p className="text-sm text-neutral-400">No fields configured yet</p>
             <p className="mt-1 text-center text-xs text-neutral-300">
               Go to <span className="font-medium text-black">Fields</span> to
               set up your purchase order form first.
@@ -275,7 +295,10 @@ export function CreatePoDialog() {
                         control={control}
                         name={field.key}
                         render={({ field: formField }) => {
-                          const dateValue = formField.value instanceof Date ? formField.value : undefined;
+                          const dateValue =
+                            formField.value instanceof Date
+                              ? formField.value
+                              : undefined;
                           return (
                             <Popover>
                               <PopoverTrigger
@@ -305,9 +328,7 @@ export function CreatePoDialog() {
                                 <Calendar
                                   mode="single"
                                   selected={dateValue}
-                                  onSelect={(date) =>
-                                    formField.onChange(date)
-                                  }
+                                  onSelect={(date) => formField.onChange(date)}
                                 />
                               </PopoverContent>
                             </Popover>
@@ -362,7 +383,7 @@ export function CreatePoDialog() {
                     ) : field.type === "textarea" ? (
                       <textarea
                         placeholder={`Enter ${field.label.toLowerCase()}…`}
-                        className="flex min-h-[80px] w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:ring-1 focus-visible:outline-none"
                         {...register(field.key)}
                       />
                     ) : field.type === "currency" ? (

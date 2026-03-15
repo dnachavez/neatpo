@@ -303,10 +303,8 @@ export function OcrReviewDialog({
           </DialogTitle>
           <DialogDescription className="text-sm text-neutral-400">
             Review extracted data from{" "}
-            <span className="font-medium text-black">
-              {document.filename}
-            </span>
-            , then select a purchase order to auto-fill its fields.
+            <span className="font-medium text-black">{document.filename}</span>,
+            then select a purchase order to auto-fill its fields.
           </DialogDescription>
         </DialogHeader>
 
@@ -424,8 +422,7 @@ export function OcrReviewDialog({
                       placeholder="Product / item name"
                       className={cn(
                         "border-neutral-200 bg-white text-sm",
-                        errors.items?.[index]?.product &&
-                          "border-destructive",
+                        errors.items?.[index]?.product && "border-destructive",
                       )}
                       {...register(`items.${index}.product`)}
                     />
@@ -437,8 +434,7 @@ export function OcrReviewDialog({
                       min={1}
                       className={cn(
                         "border-neutral-200 bg-white text-sm",
-                        errors.items?.[index]?.quantity &&
-                          "border-destructive",
+                        errors.items?.[index]?.quantity && "border-destructive",
                       )}
                       {...register(`items.${index}.quantity`, {
                         valueAsNumber: true,
@@ -480,7 +476,7 @@ export function OcrReviewDialog({
             <div className="relative">
               <MagnifyingGlass
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                className="absolute top-1/2 left-3 -translate-y-1/2 text-neutral-400"
               />
               <Input
                 placeholder="Search by PO number or supplier…"
@@ -496,9 +492,7 @@ export function OcrReviewDialog({
                   key={po._id}
                   type="button"
                   onClick={() =>
-                    setManualPoId(
-                      selectedPoId === po._id ? null : po._id,
-                    )
+                    setManualPoId(selectedPoId === po._id ? null : po._id)
                   }
                   className={cn(
                     "flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors",
@@ -509,9 +503,7 @@ export function OcrReviewDialog({
                 >
                   <div>
                     <span className="font-medium">{po.poNumber}</span>
-                    <span className="ml-2 text-neutral-400">
-                      {po.supplier}
-                    </span>
+                    <span className="ml-2 text-neutral-400">{po.supplier}</span>
                   </div>
                   {selectedPoId === po._id && (
                     <Badge variant="default" className="text-[10px]">

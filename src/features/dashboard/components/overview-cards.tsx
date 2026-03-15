@@ -45,27 +45,21 @@ export function OverviewCards() {
     },
     {
       title: "Avg Delivery Fee",
-      value: analytics
-        ? `$${analytics.avgDeliveryFee.toFixed(2)}`
-        : "$0.00",
+      value: analytics ? `$${analytics.avgDeliveryFee.toFixed(2)}` : "$0.00",
       icon: Truck,
       color: "text-amber-600",
       bg: "bg-amber-50",
     },
     {
       title: "Docs Processed",
-      value: docCounts
-        ? docCounts.extracted + docCounts.matched
-        : 0,
+      value: docCounts ? docCounts.extracted + docCounts.matched : 0,
       icon: Files,
       color: "text-teal-600",
       bg: "bg-teal-50",
     },
     {
       title: "Pending OCR",
-      value: docCounts
-        ? docCounts.uploaded + docCounts.processing
-        : 0,
+      value: docCounts ? docCounts.uploaded + docCounts.processing : 0,
       icon: CircleNotch,
       color: "text-neutral-600",
       bg: "bg-neutral-100",

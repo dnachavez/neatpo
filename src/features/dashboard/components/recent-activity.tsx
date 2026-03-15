@@ -3,10 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { formatDistanceToNow } from "date-fns";
-import {
-  FileText,
-  File,
-} from "@phosphor-icons/react";
+import { FileText, File } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,8 +12,7 @@ export function RecentActivity() {
   const purchaseOrders = useQuery(api.purchaseOrders.list);
   const documents = useQuery(api.documents.list);
 
-  const isLoading =
-    purchaseOrders === undefined || documents === undefined;
+  const isLoading = purchaseOrders === undefined || documents === undefined;
 
   type ActivityItem = {
     id: string;
@@ -122,8 +118,8 @@ export function RecentActivity() {
                     variant="outline"
                     className={`text-[10px] ${
                       activity.type === "po"
-                        ? poStatusColors[activity.status] ?? ""
-                        : docStatusColors[activity.status] ?? ""
+                        ? (poStatusColors[activity.status] ?? "")
+                        : (docStatusColors[activity.status] ?? "")
                     }`}
                   >
                     {activity.status.charAt(0).toUpperCase() +

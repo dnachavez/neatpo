@@ -101,8 +101,7 @@ describe("createPoSchema (with date refinement)", () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       const dateIssue = result.error.issues.find(
-        (i) =>
-          Array.isArray(i.path) && i.path.includes("expectedDeliveryDate"),
+        (i) => Array.isArray(i.path) && i.path.includes("expectedDeliveryDate"),
       );
       expect(dateIssue).toBeDefined();
       expect(dateIssue?.message).toBe(

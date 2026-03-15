@@ -27,10 +27,7 @@ import {
 
 type DocStatus = "uploaded" | "processing" | "extracted" | "matched";
 
-const statusConfig: Record<
-  DocStatus,
-  { label: string; className: string }
-> = {
+const statusConfig: Record<DocStatus, { label: string; className: string }> = {
   uploaded: {
     label: "Uploaded",
     className: "border-neutral-200 bg-neutral-50 text-neutral-600",
@@ -61,8 +58,7 @@ export function DocumentHistoryTable() {
       !searchQuery ||
       doc.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.matchedPoNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || doc.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || doc.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -78,7 +74,7 @@ export function DocumentHistoryTable() {
           <div className="relative flex-1">
             <MagnifyingGlass
               size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+              className="absolute top-1/2 left-3 -translate-y-1/2 text-neutral-400"
             />
             <Input
               placeholder="Search documents…"
@@ -89,9 +85,7 @@ export function DocumentHistoryTable() {
           </div>
           <Select
             value={statusFilter}
-            onValueChange={(val) =>
-              setStatusFilter(val as DocStatus | "all")
-            }
+            onValueChange={(val) => setStatusFilter(val as DocStatus | "all")}
           >
             <SelectTrigger className="h-9 w-36 border-neutral-200 bg-white text-sm">
               <SelectValue placeholder="All statuses" />
@@ -135,10 +129,7 @@ export function DocumentHistoryTable() {
                 {filtered.map((doc) => {
                   const conf = statusConfig[doc.status];
                   return (
-                    <TableRow
-                      key={doc._id}
-                      className="border-neutral-200"
-                    >
+                    <TableRow key={doc._id} className="border-neutral-200">
                       <TableCell className="text-sm text-black">
                         {doc.filename}
                       </TableCell>

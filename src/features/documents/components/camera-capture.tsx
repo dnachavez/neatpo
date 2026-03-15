@@ -72,11 +72,9 @@ export function CameraCapture({
     canvas.toBlob(
       (blob) => {
         if (blob) {
-          const file = new File(
-            [blob],
-            `scan-${Date.now()}.jpg`,
-            { type: "image/jpeg" },
-          );
+          const file = new File([blob], `scan-${Date.now()}.jpg`, {
+            type: "image/jpeg",
+          });
           onCapture(file);
           onOpenChange(false);
         }

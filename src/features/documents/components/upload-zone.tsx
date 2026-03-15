@@ -193,7 +193,10 @@ export function UploadZone() {
 
   const statusBadge: Record<
     SelectedFile["status"],
-    { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
+    {
+      label: string;
+      variant: "default" | "secondary" | "outline" | "destructive";
+    }
   > = {
     pending: { label: "Ready", variant: "outline" },
     uploading: { label: "Uploading…", variant: "secondary" },
@@ -272,8 +275,7 @@ export function UploadZone() {
                   className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2"
                 >
                   <div className="flex items-center gap-2">
-                    {sf.status === "processing" ||
-                    sf.status === "uploading" ? (
+                    {sf.status === "processing" || sf.status === "uploading" ? (
                       <CircleNotch
                         size={16}
                         className="animate-spin text-neutral-400"

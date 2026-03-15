@@ -82,7 +82,9 @@ export const processDocument = action({
       let extractedJson: string;
       try {
         const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)```/);
-        const jsonString = jsonMatch ? jsonMatch[1].trim() : responseText.trim();
+        const jsonString = jsonMatch
+          ? jsonMatch[1].trim()
+          : responseText.trim();
         const parsed = JSON.parse(jsonString);
         extractedJson = JSON.stringify(parsed);
       } catch {

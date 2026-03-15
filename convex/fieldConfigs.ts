@@ -44,9 +44,7 @@ export const create = mutation({
       .first();
 
     if (existing) {
-      throw new ConvexError(
-        `A field with key "${args.key}" already exists.`,
-      );
+      throw new ConvexError(`A field with key "${args.key}" already exists.`);
     }
 
     return await ctx.db.insert("fieldConfigs", {

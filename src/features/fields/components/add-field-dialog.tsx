@@ -184,9 +184,12 @@ export function AddFieldDialog({
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "An error occurred";
-      toast.error(isEditing ? "Failed to update field" : "Failed to create field", {
-        description: message,
-      });
+      toast.error(
+        isEditing ? "Failed to update field" : "Failed to create field",
+        {
+          description: message,
+        },
+      );
     }
   }
 
@@ -252,10 +255,7 @@ export function AddFieldDialog({
                 control={control}
                 name="type"
                 render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger className="border-neutral-200 bg-white">
                       <SelectValue />
                     </SelectTrigger>

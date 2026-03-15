@@ -50,7 +50,8 @@ export function DeliveryPredictions() {
   );
   dayEntries.sort((a, b) => a.avg - b.avg);
   const bestDay = dayEntries.length > 0 ? dayEntries[0] : null;
-  const worstDay = dayEntries.length > 0 ? dayEntries[dayEntries.length - 1] : null;
+  const worstDay =
+    dayEntries.length > 0 ? dayEntries[dayEntries.length - 1] : null;
 
   // 2. Fee trend — compute from monthly data if available
   const monthEntries = Object.entries(analytics.byMonth);
@@ -225,9 +226,7 @@ export function DeliveryPredictions() {
                 <div className="flex gap-1">
                   {dayNames.map((name, idx) => {
                     const entry = dayEntries.find((e) => e.day === idx);
-                    const maxFee = Math.max(
-                      ...dayEntries.map((e) => e.avg),
-                    );
+                    const maxFee = Math.max(...dayEntries.map((e) => e.avg));
                     const heightPct = entry
                       ? Math.max((entry.avg / maxFee) * 100, 8)
                       : 0;

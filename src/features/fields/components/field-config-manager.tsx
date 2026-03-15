@@ -83,7 +83,10 @@ type FieldConfig = {
   width: "full" | "half";
 };
 
-const typeIcons: Record<string, React.ComponentType<{ size: number; className?: string }>> = {
+const typeIcons: Record<
+  string,
+  React.ComponentType<{ size: number; className?: string }>
+> = {
   string: TextT,
   number: Hash,
   date: CalendarBlank,
@@ -148,7 +151,7 @@ function SortableFieldItem({
       className={cn(
         "group flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2.5 transition-shadow",
         isDragging && "z-50 shadow-lg ring-2 ring-black/10",
-        field.width === "half" ? "flex-1 min-w-0" : "w-full",
+        field.width === "half" ? "min-w-0 flex-1" : "w-full",
       )}
     >
       <button
@@ -175,7 +178,10 @@ function SortableFieldItem({
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-neutral-400">{field.key}</span>
-          <Badge variant="outline" className="px-1 py-0 text-[9px] text-neutral-400">
+          <Badge
+            variant="outline"
+            className="px-1 py-0 text-[9px] text-neutral-400"
+          >
             {typeLabels[field.type]}
           </Badge>
           <Badge
@@ -224,7 +230,7 @@ function SortableFieldItem({
               <Button
                 variant="ghost"
                 size="icon-xs"
-                className="text-neutral-400 hover:text-destructive"
+                className="hover:text-destructive text-neutral-400"
                 title="Delete field"
               />
             }
@@ -233,10 +239,12 @@ function SortableFieldItem({
           </AlertDialogTrigger>
           <AlertDialogContent className="border-neutral-200 bg-white">
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete &ldquo;{field.label}&rdquo;?</AlertDialogTitle>
+              <AlertDialogTitle>
+                Delete &ldquo;{field.label}&rdquo;?
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                This will remove the field from your PO form. Existing
-                purchase orders that used this field will not be affected.
+                This will remove the field from your PO form. Existing purchase
+                orders that used this field will not be affected.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -244,7 +252,7 @@ function SortableFieldItem({
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
-                className="bg-destructive text-white hover:bg-destructive/90"
+                className="bg-destructive hover:bg-destructive/90 text-white"
                 onClick={() => onDelete(field._id)}
               >
                 Delete
@@ -520,10 +528,12 @@ export function FieldConfigManager() {
       </Card>
 
       {/* Live Preview */}
-      <Card className={cn(
-        "border-neutral-200 bg-white shadow-none",
-        showPreview ? "block lg:block" : "hidden lg:block",
-      )}>
+      <Card
+        className={cn(
+          "border-neutral-200 bg-white shadow-none",
+          showPreview ? "block lg:block" : "hidden lg:block",
+        )}
+      >
         <CardHeader>
           <CardTitle className="font-serif text-lg font-normal tracking-tight text-black">
             Form Preview

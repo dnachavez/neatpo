@@ -70,8 +70,7 @@ export function PurchaseOrdersTable() {
       !searchQuery ||
       po.poNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       po.supplier.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || po.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || po.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -93,7 +92,7 @@ export function PurchaseOrdersTable() {
         <div className="relative flex-1">
           <MagnifyingGlass
             size={14}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+            className="absolute top-1/2 left-3 -translate-y-1/2 text-neutral-400"
           />
           <Input
             placeholder="Search by PO number or supplier…"
@@ -104,9 +103,7 @@ export function PurchaseOrdersTable() {
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(val) =>
-            setStatusFilter(val as PoStatus | "all")
-          }
+          onValueChange={(val) => setStatusFilter(val as PoStatus | "all")}
         >
           <SelectTrigger className="h-9 w-36 border-neutral-200 bg-white text-sm">
             <SelectValue placeholder="All statuses" />
@@ -194,10 +191,7 @@ export function PurchaseOrdersTable() {
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuSub>
                             <DropdownMenuSubTrigger>
-                              <ArrowsClockwise
-                                size={14}
-                                className="mr-2"
-                              />
+                              <ArrowsClockwise size={14} className="mr-2" />
                               Status
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
@@ -206,9 +200,7 @@ export function PurchaseOrdersTable() {
                               ).map((s) => (
                                 <DropdownMenuItem
                                   key={s}
-                                  onClick={() =>
-                                    handleStatusChange(po._id, s)
-                                  }
+                                  onClick={() => handleStatusChange(po._id, s)}
                                 >
                                   <Badge
                                     variant="outline"

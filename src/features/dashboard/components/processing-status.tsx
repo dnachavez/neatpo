@@ -59,9 +59,7 @@ export function ProcessingStatus() {
         ) : (
           <div className="flex flex-col items-center py-6 text-center">
             <CheckCircle size={24} className="mb-2 text-emerald-500" />
-            <p className="text-sm text-neutral-400">
-              All documents processed
-            </p>
+            <p className="text-sm text-neutral-400">All documents processed</p>
           </div>
         )}
       </CardContent>
