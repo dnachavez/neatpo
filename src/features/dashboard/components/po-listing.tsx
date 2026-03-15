@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { format } from "date-fns";
@@ -12,6 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+type PoStatus = "draft" | "processing" | "completed";
+const ALL_STATUSES = "all" as const;
 
 const statusConfig: Record<
   string,
@@ -36,9 +40,10 @@ const statusConfig: Record<
 
 interface PoListingProps {
   searchQuery: string;
+  statusFilter: PoStatus | typeof ALL_STATUSES;
 }
 
-export function PoListing({ searchQuery }: PoListingProps) {
+export function PoListing({ searchQuery, statusFilter }: PoListingProps) {
   const trimmed = searchQuery.trim();
   const allOrders = useQuery(api.purchaseOrders.list);
   const searchResults = useQuery(
@@ -46,7 +51,13 @@ export function PoListing({ searchQuery }: PoListingProps) {
     trimmed ? { query: trimmed } : "skip",
   );
 
-  const orders = trimmed ? searchResults : allOrders;
+  const baseOrders = trimmed ? searchResults : allOrders;
+
+  const orders = useMemo(() => {
+    if (!baseOrders) return undefined;
+    if (statusFilter === ALL_STATUSES) return baseOrders;
+    return baseOrders.filter((po) => po.status === statusFilter);
+  }, [baseOrders, statusFilter]);
 
   if (orders === undefined) {
     return (
@@ -59,8 +70,8 @@ export function PoListing({ searchQuery }: PoListingProps) {
   if (orders.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-neutral-400">
-        {trimmed
-          ? "No purchase orders match your search."
+        {trimmed || statusFilter !== ALL_STATUSES
+          ? "No purchase orders match your filters."
           : "No purchase orders yet."}
       </p>
     );
@@ -106,3 +117,4 @@ export function PoListing({ searchQuery }: PoListingProps) {
     </div>
   );
 }
+
