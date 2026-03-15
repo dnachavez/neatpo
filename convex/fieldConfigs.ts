@@ -34,6 +34,7 @@ export const create = mutation({
     required: v.boolean(),
     order: v.number(),
     width: v.union(v.literal("full"), v.literal("half")),
+    options: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -78,6 +79,7 @@ export const update = mutation({
     required: v.optional(v.boolean()),
     order: v.optional(v.number()),
     width: v.optional(v.union(v.literal("full"), v.literal("half"))),
+    options: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { id, ...fields } = args;

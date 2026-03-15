@@ -81,6 +81,7 @@ type FieldConfig = {
   required: boolean;
   order: number;
   width: "full" | "half";
+  options?: string[];
 };
 
 const typeIcons: Record<

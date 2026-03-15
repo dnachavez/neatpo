@@ -18,6 +18,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -55,6 +62,7 @@ type FieldConfig = {
   required: boolean;
   order: number;
   width: "full" | "half";
+  options?: string[];
 };
 
 export function CreatePoDialog() {
@@ -395,10 +403,26 @@ export function CreatePoDialog() {
                         {...register(field.key, { valueAsNumber: true })}
                       />
                     ) : field.type === "select" ? (
-                      <Input
-                        placeholder={`Enter ${field.label.toLowerCase()}…`}
-                        className="border-neutral-200 bg-white"
-                        {...register(field.key)}
+                      <Controller
+                        control={control}
+                        name={field.key}
+                        render={({ field: formField }) => (
+                          <Select
+                            value={formField.value as string}
+                            onValueChange={formField.onChange}
+                          >
+                            <SelectTrigger className="border-neutral-200 bg-white">
+                              <SelectValue placeholder="Select an option…" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(field.options ?? []).map((opt) => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                     ) : field.type === "time" ? (
                       <Input

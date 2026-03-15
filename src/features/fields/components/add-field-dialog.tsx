@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -11,6 +11,7 @@ import {
   ArrowsOutLineHorizontal,
   ArrowsInLineHorizontal,
 } from "@phosphor-icons/react";
+import { Plus, X } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,6 +52,7 @@ export const fieldSchema = z.object({
   ]),
   required: z.boolean(),
   width: z.enum(["full", "half"]),
+  options: z.array(z.string()).optional(),
 });
 
 type FieldFormData = z.infer<typeof fieldSchema>;
@@ -77,6 +79,7 @@ interface AddFieldDialogProps {
       | "datetime";
     required: boolean;
     width: "full" | "half";
+    options?: string[];
   } | null;
   fieldCount: number;
 }
@@ -95,6 +98,9 @@ export function AddFieldDialog({
 
   const isEditing = !!editField;
 
+  const [selectOptions, setSelectOptions] = useState<string[]>([]);
+  const [newOption, setNewOption] = useState("");
+
   const form = useForm<FieldFormData>({
     resolver: zodResolver(fieldSchema),
     defaultValues: {
@@ -103,6 +109,7 @@ export function AddFieldDialog({
       type: "string",
       required: false,
       width: "full",
+      options: [],
     },
   });
 
@@ -117,6 +124,7 @@ export function AddFieldDialog({
   } = form;
 
   const currentWidth = watch("width");
+  const currentType = watch("type");
 
   // Auto-generate key from label
   const label = watch("label");
@@ -139,7 +147,9 @@ export function AddFieldDialog({
         type: editField.type,
         required: editField.required,
         width: editField.width,
+        options: editField.options ?? [],
       });
+      setSelectOptions(editField.options ?? []);
     } else {
       reset({
         label: "",
@@ -147,7 +157,9 @@ export function AddFieldDialog({
         type: "string",
         required: false,
         width: "full",
+        options: [],
       });
+      setSelectOptions([]);
     }
   }, [editField, reset]);
 
@@ -165,6 +177,8 @@ export function AddFieldDialog({
           type: data.type,
           required: data.required,
           width: data.width,
+          options:
+            data.type === "select" ? selectOptions : undefined,
         });
         toast.success(`Field "${data.label}" updated`);
       } else {
@@ -176,10 +190,14 @@ export function AddFieldDialog({
           required: data.required,
           order: fieldCount,
           width: data.width,
+          options:
+            data.type === "select" ? selectOptions : undefined,
         });
         toast.success(`Field "${data.label}" created`);
       }
       reset();
+      setSelectOptions([]);
+      setNewOption("");
       onOpenChange(false);
     } catch (error) {
       const message =
@@ -310,6 +328,73 @@ export function AddFieldDialog({
               </div>
             </div>
           </div>
+
+          {currentType === "select" && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Dropdown Options</Label>
+              <div className="space-y-1.5">
+                {selectOptions.map((opt, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      value={opt}
+                      onChange={(e) => {
+                        const updated = [...selectOptions];
+                        updated[idx] = e.target.value;
+                        setSelectOptions(updated);
+                      }}
+                      className="border-neutral-200 bg-white text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-neutral-400 hover:text-destructive"
+                      onClick={() =>
+                        setSelectOptions(selectOptions.filter((_, i) => i !== idx))
+                      }
+                    >
+                      <X size={14} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newOption}
+                  onChange={(e) => setNewOption(e.target.value)}
+                  placeholder="Add an option…"
+                  className="border-neutral-200 bg-white text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newOption.trim()) {
+                      e.preventDefault();
+                      setSelectOptions([...selectOptions, newOption.trim()]);
+                      setNewOption("");
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-neutral-200"
+                  onClick={() => {
+                    if (newOption.trim()) {
+                      setSelectOptions([...selectOptions, newOption.trim()]);
+                      setNewOption("");
+                    }
+                  }}
+                >
+                  <Plus size={14} />
+                  Add
+                </Button>
+              </div>
+              {selectOptions.length === 0 && (
+                <p className="text-[10px] text-neutral-400">
+                  Add at least one option for the dropdown.
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2">
             <div>

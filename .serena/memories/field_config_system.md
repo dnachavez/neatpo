@@ -13,7 +13,7 @@ Allows users to customize the PO creation form by adding, editing, removing, and
 - `url` — URL input
 - `textarea` — multi-line text
 - `currency` — currency amount (number with 0.01 step)
-- `select` — dropdown (text input placeholder)
+- `select` — dropdown with configurable options (stored as `options: string[]` in fieldConfigs)
 - `time` — time picker
 - `datetime` — date & time picker
 

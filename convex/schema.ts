@@ -31,6 +31,7 @@ export default defineSchema({
     required: v.boolean(),
     order: v.number(),
     width: v.union(v.literal("full"), v.literal("half")),
+    options: v.optional(v.array(v.string())),
     isDefault: v.boolean(),
     createdAt: v.number(),
   })
