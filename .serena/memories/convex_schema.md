@@ -2,6 +2,11 @@
 
 ## Tables
 
+### vendors
+- `name` (string), `contactEmail` (optional string), `contactPhone` (optional string), `address` (optional string), `notes` (optional string)
+- `userId` (id → users), `createdAt` (number)
+- **Indexes**: `by_user` [userId], `by_name` [name]
+
 ### users
 - `name` (string), `email` (string), `passwordHash` (string)
 - `role` (union: "admin" | "staff")
@@ -17,7 +22,7 @@
 - **Indexes**: `by_user` [userId], `by_user_and_key` [userId, key]
 
 ### purchaseOrders
-- `poNumber` (string), `supplier` (string)
+- `poNumber` (string), `supplier` (string), `vendorId` (optional id → vendors)
 - `orderDate` (number), `expectedDeliveryDate` (number)
 - `deliveryFee` (optional number), `totalAmount` (optional string), `currency` (optional string)
 - `shippingDetails` (optional string), `trackingNumber` (optional string), `notes` (optional string)

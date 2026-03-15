@@ -1,4 +1,6 @@
 import { query, mutation, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 
@@ -226,5 +228,207 @@ export const internalUpdateExtractedData = internalMutation({
       documentType: args.documentType,
       status: "extracted",
     });
+  },
+});
+
+/**
+ * Server-side auto-match: tries to link the document to an existing PO
+ * by matching extracted PO number or tracking number.
+ * Called automatically after OCR extraction succeeds.
+ */
+export const internalAutoMatch = internalMutation({
+  args: {
+    documentId: v.id("documents"),
+    poNumber: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let matchedPo = null;
+    let strategy: string | null = null;
+
+    // 1. Try exact PO number match
+    if (args.poNumber) {
+      matchedPo = await ctx.db
+        .query("purchaseOrders")
+        .withIndex("by_poNumber", (q) => q.eq("poNumber", args.poNumber!))
+        .first();
+      if (matchedPo) strategy = "poNumber";
+    }
+
+    // 2. Try exact tracking number match
+    if (!matchedPo && args.trackingNumber) {
+      matchedPo = await ctx.db
+        .query("purchaseOrders")
+        .withIndex("by_trackingNumber", (q) =>
+          q.eq("trackingNumber", args.trackingNumber!),
+        )
+        .first();
+      if (matchedPo) strategy = "trackingNumber";
+    }
+
+    if (matchedPo) {
+      // Link document to PO
+      await ctx.db.patch(args.documentId, {
+        purchaseOrderId: matchedPo._id,
+        status: "matched",
+      });
+
+      // Auto-advance PO status: draft → processing
+      if (matchedPo.status === "draft") {
+        await ctx.db.patch(matchedPo._id, { status: "processing" });
+      }
+
+      return { matched: true, strategy, purchaseOrderId: matchedPo._id };
+    }
+
+    return { matched: false, strategy: null, purchaseOrderId: null };
+  },
+});
+
+/**
+ * Auto-create POs and vendors from extracted OCR data.
+ * Called by the OCR pipeline after extraction succeeds.
+ * Handles both single-doc and multi-PO spreadsheet flows.
+ */
+export const internalCreatePOsFromExtraction = internalMutation({
+  args: {
+    documentId: v.id("documents"),
+    userId: v.id("users"),
+    extractedPOs: v.string(), // JSON string — array of extracted PO objects
+  },
+  handler: async (ctx, args) => {
+    let poArray: Array<Record<string, unknown>>;
+    try {
+      poArray = JSON.parse(args.extractedPOs);
+      if (!Array.isArray(poArray)) poArray = [poArray];
+    } catch {
+      return { created: 0, matched: 0, skipped: 0 };
+    }
+
+    let created = 0;
+    let matched = 0;
+    let skipped = 0;
+    let firstLinkedPoId: Id<"purchaseOrders"> | null = null;
+
+    for (const po of poArray) {
+      const poNumber = po.poNumber as string | null;
+      const vendorName = po.vendorName as string | null;
+
+      // Skip POs without a PO number — can't create without one
+      if (!poNumber || poNumber.trim() === "") {
+        skipped++;
+        continue;
+      }
+
+      // Check if PO already exists
+      const existingPo = await ctx.db
+        .query("purchaseOrders")
+        .withIndex("by_poNumber", (q) => q.eq("poNumber", poNumber.trim()))
+        .first();
+
+      if (existingPo) {
+        // PO exists — link document to it
+        if (!firstLinkedPoId) {
+          firstLinkedPoId = existingPo._id;
+        }
+        matched++;
+        continue;
+      }
+
+      // Create vendor if vendor name is provided
+      let vendorId = undefined;
+      if (vendorName && vendorName.trim() !== "") {
+        vendorId = await ctx.runMutation(internal.vendors.internalGetOrCreate, {
+          name: vendorName.trim(),
+          userId: args.userId,
+        });
+      }
+
+      // Parse dates
+      const orderDateStr = po.orderDate as string | null;
+      const deliveryDateStr = po.deliveryDate as string | null;
+      const orderDate = orderDateStr
+        ? new Date(orderDateStr).getTime()
+        : Date.now();
+      const deliveryDate = deliveryDateStr
+        ? new Date(deliveryDateStr).getTime()
+        : orderDate + 14 * 24 * 60 * 60 * 1000; // Default: 14 days from order
+
+      // Parse items
+      const rawItems = (po.items as Array<{ product: string; quantity: number }>) || [];
+      const items = rawItems.length > 0
+        ? rawItems.map((item) => ({
+            product: item.product ?? "Unknown item",
+            quantity: typeof item.quantity === "number" ? item.quantity : 1,
+          }))
+        : [{ product: "Unspecified", quantity: 1 }];
+
+      // Create the PO
+      const newPoId = await ctx.db.insert("purchaseOrders", {
+        poNumber: poNumber.trim(),
+        supplier: vendorName?.trim() ?? "Unknown Vendor",
+        vendorId,
+        orderDate: isNaN(orderDate) ? Date.now() : orderDate,
+        expectedDeliveryDate: isNaN(deliveryDate) ? Date.now() + 14 * 24 * 60 * 60 * 1000 : deliveryDate,
+        items,
+        status: "draft",
+        sourceDocumentId: args.documentId,
+        userId: args.userId,
+        createdAt: Date.now(),
+        // Optional fields
+        ...(po.totalAmount ? { totalAmount: po.totalAmount as string } : {}),
+        ...(po.deliveryFee ? { deliveryFee: po.deliveryFee as number } : {}),
+        ...(po.currency ? { currency: po.currency as string } : {}),
+        ...(po.shippingDetails ? { shippingDetails: po.shippingDetails as string } : {}),
+        ...(po.trackingNumber ? { trackingNumber: po.trackingNumber as string } : {}),
+        ...(po.notes ? { notes: po.notes as string } : {}),
+      });
+
+      if (!firstLinkedPoId) {
+        firstLinkedPoId = newPoId;
+      }
+      created++;
+    }
+
+    // Link document to the first PO (whether created or matched)
+    if (firstLinkedPoId) {
+      await ctx.db.patch(args.documentId, {
+        purchaseOrderId: firstLinkedPoId,
+        status: "matched",
+      });
+
+      // Auto-advance the first PO: draft → processing
+      const firstPo = await ctx.db.get(firstLinkedPoId);
+      if (firstPo && firstPo.status === "draft") {
+        await ctx.db.patch(firstLinkedPoId, { status: "processing" });
+      }
+    }
+
+    return { created, matched, skipped };
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("documents") },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.id);
+    if (!doc) throw new Error("Document not found");
+
+    // Delete the file from storage
+    if (doc.fileStorageId) {
+      await ctx.storage.delete(doc.fileStorageId);
+    }
+
+    // Delete associated OCR results
+    const ocrResults = await ctx.db
+      .query("ocrResults")
+      .withIndex("by_document", (q) => q.eq("documentId", args.id))
+      .collect();
+    for (const result of ocrResults) {
+      await ctx.db.delete(result._id);
+    }
+
+    // Delete the document record
+    await ctx.db.delete(args.id);
   },
 });

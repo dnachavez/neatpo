@@ -16,6 +16,7 @@ import type * as ocrResults from "../ocrResults.js";
 import type * as purchaseOrders from "../purchaseOrders.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
+import type * as vendors from "../vendors.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   purchaseOrders: typeof purchaseOrders;
   seed: typeof seed;
   users: typeof users;
+  vendors: typeof vendors;
 }>;
 
 /**

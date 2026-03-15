@@ -3,16 +3,23 @@
 ## Flow
 1. **Upload**: User uploads any document (no file type restrictions, 10MB max) via `upload-zone.tsx` or captures via `camera-capture.tsx`
 2. **Storage**: File is stored in Convex file storage via `documents.generateUploadUrl` + `documents.create`
-3. **Processing**: `ocr.processDocument` action is triggered
+3. **Processing**: `ocr.processDocument` action is triggered (receives `userId` for auto-creation)
    - Sets document status to `"processing"`
    - Fetches file from Convex storage
-   - Converts to base64 and sends to Gemini 2.0 Flash model with `EXTRACTION_PROMPT`
+   - **Spreadsheets**: Converts to CSV text, uses `GEMINI_MULTI_PO_RESPONSE_SCHEMA` (array response) and `SPREADSHEET_EXTRACTION_PROMPT` to extract **multiple POs** from a single spreadsheet
+   - **Other docs**: Converts to base64, uses `GEMINI_RESPONSE_SCHEMA` (single object) and `EXTRACTION_PROMPT`
    - Parses the structured JSON response
    - Saves OCR result via `ocrResults.create`
    - Updates document with extracted data via `documents.internalUpdateExtractedData`
    - On failure: reverts status to `"uploaded"`
-4. **Review**: User reviews extracted data in `ocr-review-dialog.tsx`, can auto-fill linked PO
-5. **Matching**: Manual or auto-match via `documents.matchToPO` mutation (advances PO status)
+4. **Auto-Create POs & Vendors**: After extraction, `internalCreatePOsFromExtraction` runs server-side:
+   - Iterates over extracted PO data (array for spreadsheets, wrapped array for single docs)
+   - For each PO: creates vendor via `vendors.internalGetOrCreate` (case-insensitive dedup), creates PO if it doesn't exist, or matches to existing PO
+   - Links document to the first created/matched PO, auto-advances PO status `draft` → `processing`
+5. **Fallback Auto-Match**: If no `userId` is provided, falls back to `internalAutoMatch` (legacy match by PO number or tracking number)
+6. **Review**: User can review extracted data in `document-details-drawer.tsx`, manually link/update PO. Multi-PO documents show an info banner with badge per PO.
+7. **Manual Matching**: Manual match still available via `documents.matchToPO` mutation (advances PO status)
+8. **Upload UX**: Files auto-upload immediately on selection (no queue step). Toast messages show creation/match counts.
 
 ## Document Statuses
 - `uploaded` → initial state after file upload

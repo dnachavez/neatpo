@@ -125,3 +125,51 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+/* Spreadsheet preview table styles */
+.spreadsheet-preview {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.spreadsheet-preview .sheet-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #737373;
+  padding: 8px 12px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.spreadsheet-preview table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.spreadsheet-preview th,
+.spreadsheet-preview td {
+  border: 1px solid #e5e5e5;
+  padding: 4px 8px;
+  text-align: left;
+  white-space: nowrap;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spreadsheet-preview th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #525252;
+  position: sticky;
+  top: 0;
+}
+
+.spreadsheet-preview tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+.spreadsheet-preview tr:hover td {
+  background: #f5f5f5;
+}
+

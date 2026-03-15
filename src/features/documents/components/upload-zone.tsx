@@ -3,39 +3,17 @@
 import { useState, useCallback, useRef } from "react";
 import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import {
-  CloudArrowUp,
-  File,
-  X,
-  Camera,
-  CircleNotch,
-} from "@phosphor-icons/react";
+import { CloudArrowUp, Camera } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CameraCapture } from "./camera-capture";
-import { OcrReviewDialog } from "./ocr-review-dialog";
+import { DocumentDetailsDrawer } from "./document-details-drawer";
 import type { Id } from "../../../../convex/_generated/dataModel";
-
-interface SelectedFile {
-  file: File;
-  id: string;
-  status:
-    | "pending"
-    | "uploading"
-    | "uploaded"
-    | "processing"
-    | "extracted"
-    | "error";
-  documentId?: Id<"documents">;
-  error?: string;
-}
 
 export function UploadZone() {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [reviewDocumentId, setReviewDocumentId] =
     useState<Id<"documents"> | null>(null);
@@ -62,20 +40,23 @@ export function UploadZone() {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    addFiles(files);
-  }, []);
+    handleFiles(files);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files) {
         const files = Array.from(e.target.files);
-        addFiles(files);
+        handleFiles(files);
+        e.target.value = "";
       }
     },
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentUser],
   );
 
-  function addFiles(files: File[]) {
+  function handleFiles(files: File[]) {
     const validFiles = files.filter((file) => {
       const isValidSize = file.size <= 10 * 1024 * 1024;
       if (!isValidSize) {
@@ -86,30 +67,17 @@ export function UploadZone() {
       return isValidSize;
     });
 
-    const newFiles: SelectedFile[] = validFiles.map((file) => ({
-      file,
-      id: crypto.randomUUID(),
-      status: "pending",
-    }));
-    setSelectedFiles((prev) => [...prev, ...newFiles]);
-  }
-
-  function removeFile(id: string) {
-    setSelectedFiles((prev) => prev.filter((f) => f.id !== id));
+    for (const file of validFiles) {
+      uploadAndProcess(file);
+    }
   }
 
   function handleCameraCapture(file: File) {
-    addFiles([file]);
     setCameraOpen(false);
+    handleFiles([file]);
   }
 
-  function updateFileStatus(id: string, update: Partial<SelectedFile>) {
-    setSelectedFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, ...update } : f)),
-    );
-  }
-
-  async function handleUpload() {
+  async function uploadAndProcess(file: File) {
     if (!currentUser?._id) {
       toast.error("Session not found", {
         description: "Please refresh and try again.",
@@ -117,94 +85,76 @@ export function UploadZone() {
       return;
     }
 
-    const pendingFiles = selectedFiles.filter((f) => f.status === "pending");
+    const uploadToastId = toast.loading(`Uploading "${file.name}"…`);
 
-    for (const sf of pendingFiles) {
-      try {
-        updateFileStatus(sf.id, { status: "uploading" });
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
 
-        const uploadUrl = await generateUploadUrl();
-        const uploadResult = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": sf.file.type },
-          body: sf.file,
-        });
+      if (!uploadResult.ok) {
+        throw new Error("File upload failed");
+      }
 
-        if (!uploadResult.ok) {
-          throw new Error("File upload failed");
+      const { storageId } = await uploadResult.json();
+
+      const documentId = await createDocument({
+        filename: file.name,
+        fileStorageId: storageId,
+        mimeType: file.type,
+        userId: currentUser._id,
+      });
+
+      toast.loading(`Processing OCR for "${file.name}"…`, {
+        id: uploadToastId,
+      });
+
+      const ocrResult = await processDocument({
+        documentId,
+        fileStorageId: storageId,
+        mimeType: file.type,
+        userId: currentUser._id,
+      });
+
+      if (ocrResult.success) {
+        const messages: string[] = ["Extracted data saved."];
+
+        if ("created" in ocrResult && typeof ocrResult.created === "number" && ocrResult.created > 0) {
+          messages.push(`${ocrResult.created} PO(s) created.`);
+        }
+        if ("matched" in ocrResult && typeof ocrResult.matched === "number" && ocrResult.matched > 0) {
+          messages.push(`${ocrResult.matched} PO(s) matched.`);
+        }
+        if ("autoMatched" in ocrResult && ocrResult.autoMatched) {
+          messages.push("Auto-matched to an existing PO.");
         }
 
-        const { storageId } = await uploadResult.json();
-
-        const documentId = await createDocument({
-          filename: sf.file.name,
-          fileStorageId: storageId,
-          mimeType: sf.file.type,
-          userId: currentUser._id,
+        toast.success(`"${file.name}" processed`, {
+          id: uploadToastId,
+          description: messages.join(" "),
+          action: {
+            label: "Review",
+            onClick: () => setReviewDocumentId(documentId),
+          },
         });
-
-        updateFileStatus(sf.id, { status: "uploaded", documentId });
-
-        toast.success(`"${sf.file.name}" uploaded successfully`, {
-          description: "Starting OCR processing…",
-        });
-
-        updateFileStatus(sf.id, { status: "processing" });
-
-        const ocrResult = await processDocument({
-          documentId,
-          fileStorageId: storageId,
-          mimeType: sf.file.type,
-        });
-
-        if (ocrResult.success) {
-          updateFileStatus(sf.id, { status: "extracted" });
-          toast.success(`OCR complete for "${sf.file.name}"`, {
-            description:
-              "Review extracted data to auto-fill your purchase order.",
-            action: {
-              label: "Review & Auto-fill",
-              onClick: () => setReviewDocumentId(documentId),
-            },
-          });
-        } else {
-          updateFileStatus(sf.id, {
-            status: "error",
-            error: ocrResult.error,
-          });
-          toast.error(`OCR failed for "${sf.file.name}"`, {
-            description: ocrResult.error,
-          });
-        }
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Upload failed";
-        updateFileStatus(sf.id, { status: "error", error: message });
-        toast.error(`Failed to process "${sf.file.name}"`, {
-          description: message,
+      } else {
+        toast.error(`OCR failed for "${file.name}"`, {
+          id: uploadToastId,
+          description: ocrResult.error,
         });
       }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Upload failed";
+      toast.error(`Failed to process "${file.name}"`, {
+        id: uploadToastId,
+        description: message,
+      });
     }
   }
-
-  const pendingCount = selectedFiles.filter(
-    (f) => f.status === "pending",
-  ).length;
-
-  const statusBadge: Record<
-    SelectedFile["status"],
-    {
-      label: string;
-      variant: "default" | "secondary" | "outline" | "destructive";
-    }
-  > = {
-    pending: { label: "Ready", variant: "outline" },
-    uploading: { label: "Uploading…", variant: "secondary" },
-    uploaded: { label: "Uploaded", variant: "secondary" },
-    processing: { label: "Processing OCR…", variant: "secondary" },
-    extracted: { label: "Extracted", variant: "default" },
-    error: { label: "Error", variant: "destructive" },
-  };
 
   return (
     <>
@@ -214,7 +164,7 @@ export function UploadZone() {
             Upload Documents
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -266,71 +216,6 @@ export function UploadZone() {
               </Button>
             </div>
           </div>
-
-          {selectedFiles.length > 0 && (
-            <div className="space-y-2">
-              {selectedFiles.map((sf) => (
-                <div
-                  key={sf.id}
-                  className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    {sf.status === "processing" || sf.status === "uploading" ? (
-                      <CircleNotch
-                        size={16}
-                        className="animate-spin text-neutral-400"
-                      />
-                    ) : (
-                      <File size={16} className="text-neutral-400" />
-                    )}
-                    <span className="text-sm text-black">{sf.file.name}</span>
-                    <span className="text-[11px] text-neutral-400">
-                      {(sf.file.size / 1024).toFixed(1)} KB
-                    </span>
-                    <Badge
-                      variant={statusBadge[sf.status].variant}
-                      className="text-[10px]"
-                    >
-                      {statusBadge[sf.status].label}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {sf.status === "extracted" && sf.documentId && (
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        className="text-xs text-neutral-500 hover:text-black"
-                        onClick={() => setReviewDocumentId(sf.documentId!)}
-                      >
-                        Review & Auto-fill
-                      </Button>
-                    )}
-                    {(sf.status === "pending" || sf.status === "error") && (
-                      <button
-                        onClick={() => removeFile(sf.id)}
-                        className="text-neutral-400 transition-colors hover:text-black"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {pendingCount > 0 && (
-                <div className="flex justify-end pt-2">
-                  <Button
-                    onClick={handleUpload}
-                    className="bg-black text-white hover:bg-neutral-800"
-                  >
-                    <CloudArrowUp size={16} weight="bold" />
-                    Upload & Process {pendingCount} file
-                    {pendingCount > 1 ? "s" : ""}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -341,7 +226,7 @@ export function UploadZone() {
       />
 
       {reviewDocumentId && (
-        <OcrReviewDialog
+        <DocumentDetailsDrawer
           documentId={reviewDocumentId}
           open={!!reviewDocumentId}
           onOpenChange={(open) => {

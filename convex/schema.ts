@@ -38,9 +38,22 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_and_key", ["userId", "key"]),
 
+  vendors: defineTable({
+    name: v.string(),
+    contactEmail: v.optional(v.string()),
+    contactPhone: v.optional(v.string()),
+    address: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_name", ["name"]),
+
   purchaseOrders: defineTable({
     poNumber: v.string(),
     supplier: v.string(),
+    vendorId: v.optional(v.id("vendors")),
     orderDate: v.number(),
     expectedDeliveryDate: v.number(),
     deliveryFee: v.optional(v.number()),
