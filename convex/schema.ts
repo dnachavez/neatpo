@@ -40,7 +40,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
-    .index("by_poNumber", ["poNumber"]),
+    .index("by_poNumber", ["poNumber"])
+    .index("by_trackingNumber", ["trackingNumber"]),
 
   documents: defineTable({
     filename: v.string(),

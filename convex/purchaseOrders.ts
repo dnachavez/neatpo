@@ -40,6 +40,15 @@ export const searchByPoNumber = query({
   },
 });
 
+export const searchByTrackingNumber = query({
+  args: { query: v.string() },
+  handler: async (ctx, args) => {
+    const all = await ctx.db.query("purchaseOrders").collect();
+    const q = args.query.toLowerCase();
+    return all.filter((po) => po.trackingNumber?.toLowerCase().includes(q));
+  },
+});
+
 export const create = mutation({
   args: {
     poNumber: v.string(),

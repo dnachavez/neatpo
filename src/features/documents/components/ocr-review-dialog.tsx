@@ -29,6 +29,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { extractedDataSchema, type ExtractedData } from "../types/document-schema";
+import { findAutoMatch, type MatchStrategy } from "../lib/auto-match";
 
 const reviewFormSchema = z.object({
   trackingNumber: z.string(),
@@ -119,22 +120,24 @@ export function OcrReviewDialog({
 
   const documentType = useWatch({ control, name: "documentType" });
 
-  // Compute auto-matched PO from extracted data
-  const autoMatchedPoId = (() => {
+  // Compute auto-matched PO from extracted data (PO number → tracking number)
+  const autoMatchResult = (() => {
     if (!document?.extractedData || !purchaseOrders) return null;
     try {
       const parsed = extractedDataSchema.parse(
         JSON.parse(document.extractedData),
       );
-      if (!parsed.poNumber) return null;
-      const match = purchaseOrders.find(
-        (po) => po.poNumber.toLowerCase() === parsed.poNumber?.toLowerCase(),
-      );
-      return match?._id ?? null;
+      return findAutoMatch(parsed, purchaseOrders);
     } catch {
       return null;
     }
   })();
+
+  const autoMatchedPoId = autoMatchResult
+    ? (autoMatchResult.purchaseOrderId as Id<"purchaseOrders">)
+    : null;
+  const autoMatchStrategy: MatchStrategy | null =
+    autoMatchResult?.strategy ?? null;
 
   // Effective selection: manual pick takes precedence, then auto-match
   const selectedPoId = manualPoId ?? autoMatchedPoId;
@@ -487,7 +490,11 @@ export function OcrReviewDialog({
                   </div>
                   {selectedPoId === po._id && (
                     <Badge variant="default" className="text-[10px]">
-                      Selected
+                      {manualPoId === po._id
+                        ? "Selected"
+                        : autoMatchStrategy === "trackingNumber"
+                          ? "Matched by Tracking #"
+                          : "Matched by PO #"}
                     </Badge>
                   )}
                 </button>
