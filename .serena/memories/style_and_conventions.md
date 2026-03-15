@@ -24,13 +24,15 @@ src/
 │   ├── (dashboard)/        # Route group for authenticated dashboard pages
 │   │   ├── purchase-orders/
 │   │   ├── scan/
-│   │   └── documents/
+│   │   ├── documents/
+│   │   └── fields/
 │   └── login/
 ├── features/               # Feature modules (feature-based architecture)
 │   ├── purchase-orders/    # types/, components/, index.ts
 │   ├── auth/               # types/, stores/, components/, index.ts
 │   ├── dashboard/          # components/, index.ts
-│   └── documents/          # components/, index.ts
+│   ├── documents/          # types/, components/, lib/, index.ts
+│   └── fields/             # components/, index.ts
 ├── components/             # Shared components
 │   └── ui/                 # shadcn/ui components
 ├── hooks/                  # Shared hooks
@@ -40,8 +42,8 @@ convex/                     # Convex backend (schema, functions)
 ```
 
 ## Naming Conventions
-- Files: kebab-case (e.g., `create-po-dialog.tsx`, `po-schema.ts`)
-- Components: PascalCase (e.g., `CreatePoDialog`, `LoginForm`)
+- Files: kebab-case (e.g., `create-po-dialog.tsx`, `po-schema.ts`, `auto-match.ts`)
+- Components: PascalCase (e.g., `CreatePoDialog`, `FieldConfigManager`)
 - Atoms/stores: camelCase (e.g., `auth-atoms.ts`)
 - Tests: `__tests__/` directories co-located with source, named `*.test.ts(x)`
 - Barrel exports: `index.ts` per feature

@@ -10,20 +10,22 @@
 - POs already in `processing` or `completed` are not regressed
 
 ## Manual Override
-- Both `purchase-orders-table.tsx` and `po-listing.tsx` have a three-dot dropdown menu with:
-  - **View Details** (Eye icon) → opens `po-details-drawer.tsx`
-  - **Documents** (Files icon) → opens `po-documents-drawer.tsx`
-  - **Status** (ArrowsClockwise icon) → sub-menu with Draft/Processing/Completed
+- `purchase-orders-table.tsx` has a three-dot dropdown menu with a single sub-menu:
+  - **Status** (ArrowsClockwise icon) → sub-menu with Draft/Processing/Completed badges
 
-## Status Badge Colors (unified)
+## Status Badge Colors (unified across all components)
 - Draft: amber (`border-amber-200 bg-amber-50 text-amber-700`)
 - Processing: blue (`border-blue-200 bg-blue-50 text-blue-700`)
 - Completed: emerald (`border-emerald-200 bg-emerald-50 text-emerald-700`)
 
+## Auto-Matching Strategies
+- **PO Number Match**: Matches extracted PO number from OCR to existing PO records
+- **Tracking Number Match**: Matches extracted tracking number to PO tracking numbers
+- Logic lives in `src/features/documents/lib/auto-match.ts` (`findAutoMatch` function)
+
 ## Key Files
 - `convex/documents.ts` — `matchToPO` mutation with auto-transition
-- `convex/purchaseOrders.ts` — `updateStatus` mutation for manual override
-- `src/features/purchase-orders/components/po-details-drawer.tsx` — PO details view
-- `src/features/purchase-orders/components/po-documents-drawer.tsx` — linked documents view
-- `src/features/purchase-orders/components/purchase-orders-table.tsx` — PO page table
-- `src/features/dashboard/components/po-listing.tsx` — Dashboard PO table
+- `convex/purchaseOrders.ts` — `updateStatus` mutation for manual override, `analytics` query
+- `src/features/purchase-orders/components/purchase-orders-table.tsx` — PO table with status sub-menu
+- `src/features/documents/lib/auto-match.ts` — Auto-matching logic
+- `src/features/documents/components/ocr-review-dialog.tsx` — OCR review and PO auto-fill

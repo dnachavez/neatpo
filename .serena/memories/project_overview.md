@@ -1,7 +1,7 @@
 # Project Overview: neatpo
 
 ## Purpose
-NeatPO is a purchase order management web application. It provides a dashboard for managing purchase orders, documents, and supplier data with authentication, scanning, and document matching features.
+NeatPO is a purchase order management web application for supply chain logistics. It provides a dashboard for managing purchase orders, document scanning with OCR, auto-matching documents to POs, interactive form building for custom PO fields, and analytics (spend & delivery).
 
 ## Tech Stack
 - **Framework**: Next.js 16.1.6 (App Router, React Server Components enabled)
@@ -20,11 +20,21 @@ NeatPO is a purchase order management web application. It provides a dashboard f
 - **Date Handling**: date-fns v4
 - **Progress Bar**: @bprogress/next
 - **Theme**: next-themes
+- **Drag & Drop**: @dnd-kit (core, sortable, utilities) — used in field config manager
+- **AI/OCR**: Google Generative AI (@google/generative-ai) — document OCR extraction
 
 ## Architecture
 - Feature-based architecture under `src/features/`
-- Each feature has its own `types/`, `components/`, `stores/`, and barrel `index.ts`
+- Each feature has its own `types/`, `components/`, `stores/`, `lib/`, and barrel `index.ts`
 - Shared UI components in `src/components/ui/` (shadcn/ui)
 - Shared layout components in `src/components/`
 - Convex backend functions in `convex/` directory
 - Path alias: `@/*` maps to `./src/*`
+
+## Key Features
+- **Purchase Order Management**: CRUD, status tracking (draft/processing/completed), search & filter
+- **Document Scanning**: Upload/camera capture, OCR extraction via Google Gemini AI, review dialog
+- **Auto-Matching**: Automatic document-to-PO matching by PO number or tracking number
+- **Interactive Form Builder**: Drag-and-drop field config with live preview, custom field types (string/number/date)
+- **Dashboard Analytics**: Overview cards, recent activity, processing status, spend analytics, delivery predictions
+- **Authentication**: Login with session persistence, auth guards

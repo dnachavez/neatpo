@@ -4,31 +4,70 @@
 - `src/app/` — Next.js App Router pages and layouts
   - `(dashboard)/` — Route group for authenticated dashboard
     - `purchase-orders/page.tsx` — Purchase orders page
-    - `scan/page.tsx` — Scanning page
-    - `documents/page.tsx` — Documents page
-    - `layout.tsx` — Dashboard layout
-    - `page.tsx` — Dashboard home
+    - `scan/page.tsx` — Document scanning page
+    - `documents/page.tsx` — Document history page
+    - `fields/page.tsx` — Field configuration / form builder page
+    - `layout.tsx` — Dashboard layout (sidebar + header)
+    - `page.tsx` — Dashboard home (overview, analytics)
   - `login/page.tsx` — Login page
   - `layout.tsx` — Root layout
   - `globals.css` — Global styles (TailwindCSS)
-- `src/features/` — Feature modules
-  - `purchase-orders/` — PO management (types/po-schema, components/create-po-dialog, purchase-orders-table)
-  - `auth/` — Authentication (types/login-schema, stores/auth-atoms, components/login-form, auth-guard)
-  - `dashboard/` — Dashboard widgets (recent-activity, processing-status, overview-cards)
-  - `documents/` — Document management (match-dialog, upload-zone, document-history-table)
+- `src/features/` — Feature modules (feature-based architecture)
+  - `purchase-orders/` — PO management
+    - `types/po-schema.ts` — Zod schema for PO validation
+    - `types/__tests__/po-schema.test.ts` — Schema tests
+    - `components/create-po-dialog.tsx` — Create PO dialog (dynamically renders fields from field configs)
+    - `components/purchase-orders-table.tsx` — PO listing table with search, filter, status management
+    - `index.ts` — Barrel exports
+  - `auth/` — Authentication
+    - `types/login-schema.ts` — Login validation schema
+    - `types/__tests__/login-schema.test.ts` — Schema tests
+    - `stores/auth-atoms.ts` — Jotai atoms for auth state
+    - `components/login-form.tsx` — Login form component
+    - `components/__tests__/login-form.test.tsx` — Login form tests
+    - `components/auth-guard.tsx` — Route protection component
+    - `components/__tests__/auth-guard.test.tsx` — Auth guard tests
+    - `index.ts` — Barrel exports
+  - `dashboard/` — Dashboard widgets
+    - `components/overview-cards.tsx` — Summary metric cards
+    - `components/recent-activity.tsx` — Recent activity feed
+    - `components/processing-status.tsx` — Document processing queue
+    - `components/spend-analytics.tsx` — Spend analytics charts (monthly & supplier breakdown)
+    - `components/delivery-predictions.tsx` — Delivery prediction analytics
+    - `index.ts` — Barrel exports
+  - `documents/` — Document scanning & management
+    - `types/document-schema.ts` — Zod schema for documents
+    - `types/__tests__/document-schema.test.ts` — Schema tests
+    - `components/upload-zone.tsx` — File upload / drag-drop zone
+    - `components/camera-capture.tsx` — Camera capture for mobile scanning
+    - `components/ocr-review-dialog.tsx` — OCR result review and PO auto-fill dialog
+    - `components/document-history-table.tsx` — Document history with search & filter
+    - `lib/auto-match.ts` — Auto-matching logic (PO number & tracking number strategies)
+    - `lib/__tests__/auto-match.test.ts` — Auto-match tests
+    - `index.ts` — Barrel exports
+  - `fields/` — Interactive form builder
+    - `components/field-config-manager.tsx` — Drag-and-drop field manager with live preview
+    - `components/add-field-dialog.tsx` — Dialog for adding/editing custom fields
+    - `components/__tests__/add-field-dialog.test.tsx` — Add field dialog tests
+    - `index.ts` — Barrel exports
 - `src/components/` — Shared components
-  - `ui/` — shadcn/ui components (button, card, dialog, table, sidebar, etc.)
-  - `app-sidebar.tsx`, `dashboard-layout.tsx`, `convex-client-provider.tsx`, `progress-bar-provider.tsx`
-- `src/hooks/` — `use-mobile.ts`
+  - `ui/` — shadcn/ui components (alert-dialog, avatar, badge, breadcrumb, button, calendar, card, dialog, dropdown-menu, input, label, popover, progress, scroll-area, select, separator, sheet, sidebar, skeleton, sonner, switch, table, tabs, tooltip)
+  - `app-sidebar.tsx` — Main navigation sidebar
+  - `dashboard-layout.tsx` — Dashboard layout wrapper (sidebar + header + breadcrumb)
+  - `convex-client-provider.tsx` — Convex client context provider
+  - `progress-bar-provider.tsx` — Page transition progress bar
+- `src/hooks/` — `use-mobile.ts` (responsive breakpoint hook)
 - `src/lib/` — `utils.ts` (clsx/tailwind-merge utility)
 - `src/test/` — `setup.ts` (Vitest test setup)
 
 ## Backend (convex/)
-- `schema.ts` — Database schema definition
-- `auth.ts` — Authentication functions
+- `schema.ts` — Database schema (tables: users, purchaseOrders, documents, fieldConfigs, ocrResults)
+- `auth.ts` — Authentication functions (login, verify session)
 - `users.ts` — User-related functions
-- `purchaseOrders.ts` — Purchase order functions
-- `suppliers.ts` — Supplier functions
-- `documents.ts` — Document functions
-- `seed.ts` — Seed data
+- `purchaseOrders.ts` — PO CRUD, status management, search, analytics query
+- `documents.ts` — Document CRUD, upload URL generation, status management, matching, OCR data updates
+- `fieldConfigs.ts` — Field configuration CRUD (create, list, update, remove, reorder)
+- `ocr.ts` — OCR processing action (Gemini AI extraction prompt and document processing)
+- `ocrResults.ts` — OCR results storage
+- `seed.ts` — Seed data for development
 - `_generated/` — Auto-generated Convex types and API
