@@ -33,7 +33,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="bg-neutral-100">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-neutral-200 bg-white px-4">
+        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b border-neutral-200 bg-white px-4">
           <SidebarTrigger className="-ml-1 text-neutral-500 hover:text-black" />
           <Separator
             orientation="vertical"
