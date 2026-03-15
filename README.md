@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NeatPO
+
+Turn massive logistics paperwork into organized digital supply chain data.
+
+NeatPO is a purchase order management platform with built-in OCR document scanning. Upload logistics documents, extract data automatically using AI, and match them to purchase orders — all from a single dashboard.
+
+## Workflow
+
+1. **Login** — Authenticate with email and password
+2. **Create Purchase Orders** — Add structured POs with supplier, items, dates, and tracking info
+3. **Scan & Upload Documents** — Drag-and-drop, file picker, or camera capture for logistics documents
+4. **OCR Extraction** — Gemini AI automatically extracts document type, PO#, vendor, items, tracking numbers, dates, amounts, and more
+5. **Match to Purchase Order** — Auto-match by PO number or tracking number, with manual match as a fallback
+6. **Auto-Fill PO Fields** — Extracted data populates the linked purchase order
+7. **Dashboard** — View organized supply chain data with KPI cards, processing status, PO listings, and activity feed
+
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph Frontend
+        LP["Login Page"]
+        PO["Purchase Orders Page"]
+        SP["Scan & Upload Page"]
+        DB["Dashboard"]
+    end
+
+    subgraph Backend ["Convex Backend"]
+        AUTH["auth.ts"]
+        POM["purchaseOrders.ts"]
+        DOC["documents.ts"]
+        OCR["ocr.ts (Gemini AI)"]
+        ORS["ocrResults.ts"]
+    end
+
+    LP -->|credentials| AUTH
+    AUTH -->|session| PO
+    PO -->|create/list/update| POM
+    SP -->|upload file| DOC
+    DOC -->|trigger| OCR
+    OCR -->|extracted data| ORS
+    OCR -->|update status| DOC
+    SP -->|review & match| POM
+    DB -->|query all| POM
+    DB -->|query counts/status| DOC
+```
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Backend**: Convex (database, real-time data, server functions)
+- **OCR**: Google Gemini 2.0 Flash
+- **UI**: shadcn/ui + TailwindCSS 4
+- **State**: Jotai (client) + TanStack Query (server)
+- **Forms**: React Hook Form + Zod
+- **Testing**: Vitest + Testing Library
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A [Convex](https://www.convex.dev/) account
+- A [Google AI Studio](https://aistudio.google.com/) API key (for Gemini OCR)
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development
+
+Start the Next.js dev server and Convex in separate terminals:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+npx convex dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open [http://localhost:3000](http://localhost:3000) to access the app.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment Variables
 
-## Learn More
+Set `GEMINI_API_KEY` in your Convex environment variables for OCR processing.
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (dashboard)/        # Authenticated routes
+│   │   ├── purchase-orders/
+│   │   ├── scan/
+│   │   ├── documents/
+│   │   └── page.tsx        # Dashboard
+│   └── login/
+├── features/               # Feature modules
+│   ├── auth/               # Authentication
+│   ├── purchase-orders/    # PO management
+│   ├── documents/          # Document scanning & OCR
+│   └── dashboard/          # Dashboard widgets
+├── components/             # Shared UI components
+└── lib/                    # Utilities
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+convex/
+├── schema.ts               # Database schema
+├── auth.ts                 # Authentication
+├── purchaseOrders.ts       # PO CRUD
+├── documents.ts            # Document management
+├── ocr.ts                  # Gemini OCR processing
+└── ocrResults.ts           # OCR results storage
+```
