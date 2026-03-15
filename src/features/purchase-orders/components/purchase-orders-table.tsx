@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { Files } from "@phosphor-icons/react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -13,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PoDocumentsDrawer } from "./po-documents-drawer";
 
 type PoStatus = "draft" | "processing" | "completed";
 
@@ -42,8 +47,13 @@ function TableSkeleton() {
 
 export function PurchaseOrdersTable() {
   const orders = useQuery(api.purchaseOrders.list);
+  const [drawerPo, setDrawerPo] = useState<{
+    id: Id<"purchaseOrders">;
+    poNumber: string;
+  } | null>(null);
 
   return (
+    <>
     <Card className="border-neutral-200 bg-white shadow-none">
       <CardHeader>
         <CardTitle className="font-serif text-lg font-normal tracking-tight text-black">
@@ -76,6 +86,9 @@ export function PurchaseOrdersTable() {
                 <TableHead className="text-right text-xs font-medium text-neutral-400">
                   Expected Delivery
                 </TableHead>
+                <TableHead className="text-xs font-medium text-neutral-400">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,6 +117,22 @@ export function PurchaseOrdersTable() {
                   <TableCell className="text-right text-sm text-neutral-400 tabular-nums">
                     {formatDate(order.expectedDeliveryDate)}
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="text-neutral-500 hover:text-black"
+                      onClick={() =>
+                        setDrawerPo({
+                          id: order._id,
+                          poNumber: order.poNumber,
+                        })
+                      }
+                    >
+                      <Files size={14} />
+                      Docs
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -111,5 +140,17 @@ export function PurchaseOrdersTable() {
         )}
       </CardContent>
     </Card>
+
+    {drawerPo && (
+      <PoDocumentsDrawer
+        purchaseOrderId={drawerPo.id}
+        poNumber={drawerPo.poNumber}
+        open={!!drawerPo}
+        onOpenChange={(open) => {
+          if (!open) setDrawerPo(null);
+        }}
+      />
+    )}
+  </>
   );
 }

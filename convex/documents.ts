@@ -1,4 +1,5 @@
 import { query, mutation, internalMutation } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 
 export const generateUploadUrl = mutation({
@@ -32,6 +33,32 @@ export const list = query({
     );
 
     return documentsWithPo;
+  },
+});
+
+export const listPaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query("documents")
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    const pageWithPo = await Promise.all(
+      result.page.map(async (doc) => {
+        let matchedPoNumber: string | null = null;
+        if (doc.purchaseOrderId) {
+          const po = await ctx.db.get(doc.purchaseOrderId);
+          matchedPoNumber = po?.poNumber ?? null;
+        }
+        return { ...doc, matchedPoNumber };
+      }),
+    );
+
+    return {
+      ...result,
+      page: pageWithPo,
+    };
   },
 });
 
