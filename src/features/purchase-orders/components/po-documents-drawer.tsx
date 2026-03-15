@@ -82,7 +82,7 @@ export function PoDocumentsDrawer({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-4">
+          <div className="mt-4 px-4">
             {documents === undefined ? (
               <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (

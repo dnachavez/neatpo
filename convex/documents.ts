@@ -154,6 +154,12 @@ export const matchToPO = mutation({
       purchaseOrderId: args.purchaseOrderId,
       status: "matched",
     });
+
+    // Auto-advance PO status: draft → processing
+    const po = await ctx.db.get(args.purchaseOrderId);
+    if (po && po.status === "draft") {
+      await ctx.db.patch(args.purchaseOrderId, { status: "processing" });
+    }
   },
 });
 

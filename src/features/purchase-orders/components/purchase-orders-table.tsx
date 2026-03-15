@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { Files, MagnifyingGlass } from "@phosphor-icons/react";
+import {
+  Files,
+  MagnifyingGlass,
+  DotsThreeVertical,
+  Check,
+  ArrowsClockwise,
+  Eye,
+} from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +24,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -26,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PoDocumentsDrawer } from "./po-documents-drawer";
+import { PoDetailsDrawer } from "./po-details-drawer";
 
 type PoStatus = "draft" | "processing" | "completed";
 
@@ -37,10 +55,17 @@ const statusLabel: Record<PoStatus, string> = {
   completed: "Completed",
 };
 
-const statusVariant: Record<PoStatus, "default" | "secondary" | "outline"> = {
-  draft: "outline",
-  processing: "secondary",
-  completed: "default",
+const statusConfig: Record<PoStatus, { className: string }> = {
+  draft: {
+    className: "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-50",
+  },
+  processing: {
+    className: "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-50",
+  },
+  completed: {
+    className:
+      "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50",
+  },
 };
 
 function formatDate(timestamp: number): string {
@@ -61,12 +86,16 @@ function TableSkeleton() {
   );
 }
 
+const PO_STATUSES: PoStatus[] = ["draft", "processing", "completed"];
+
 export function PurchaseOrdersTable() {
   const orders = useQuery(api.purchaseOrders.list);
+  const updateStatus = useMutation(api.purchaseOrders.updateStatus);
   const [drawerPo, setDrawerPo] = useState<{
     id: Id<"purchaseOrders">;
     poNumber: string;
   } | null>(null);
+  const [detailsPo, setDetailsPo] = useState<Id<"purchaseOrders"> | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -194,8 +223,8 @@ export function PurchaseOrdersTable() {
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={statusVariant[order.status]}
-                        className="text-[11px] font-medium"
+                        variant="outline"
+                        className={`text-[11px] font-medium ${statusConfig[order.status].className}`}
                       >
                         {statusLabel[order.status]}
                       </Badge>
@@ -207,20 +236,66 @@ export function PurchaseOrdersTable() {
                       {formatDate(order.expectedDeliveryDate)}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        className="text-neutral-500 hover:text-black"
-                        onClick={() =>
-                          setDrawerPo({
-                            id: order._id,
-                            poNumber: order.poNumber,
-                          })
-                        }
-                      >
-                        <Files size={14} />
-                        Docs
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            className="text-neutral-500 hover:text-black"
+                          >
+                            <DotsThreeVertical size={16} weight="bold" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setDetailsPo(order._id)}
+                          >
+                            <Eye size={14} />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setDrawerPo({
+                                id: order._id,
+                                poNumber: order.poNumber,
+                              })
+                            }
+                          >
+                            <Files size={14} />
+                            Documents
+                          </DropdownMenuItem>
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                              <ArrowsClockwise size={14} />
+                              Status
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                              {PO_STATUSES.map((s) => (
+                                <DropdownMenuItem
+                                  key={s}
+                                  disabled={order.status === s}
+                                  onClick={() => {
+                                    updateStatus({ id: order._id, status: s })
+                                      .then(() =>
+                                        toast.success(
+                                          `Status updated to ${statusLabel[s]}`,
+                                        ),
+                                      )
+                                      .catch(() =>
+                                        toast.error("Failed to update status"),
+                                      );
+                                  }}
+                                >
+                                  {order.status === s && (
+                                    <Check size={14} weight="bold" />
+                                  )}
+                                  {statusLabel[s]}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -237,6 +312,16 @@ export function PurchaseOrdersTable() {
           open={!!drawerPo}
           onOpenChange={(open) => {
             if (!open) setDrawerPo(null);
+          }}
+        />
+      )}
+
+      {detailsPo && (
+        <PoDetailsDrawer
+          purchaseOrderId={detailsPo}
+          open={!!detailsPo}
+          onOpenChange={(open) => {
+            if (!open) setDetailsPo(null);
           }}
         />
       )}
