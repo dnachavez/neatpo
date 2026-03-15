@@ -13,6 +13,8 @@ export type AuthUser = {
 export const authUserAtom = atomWithStorage<AuthUser | null>(
   "neatpo_auth_user",
   null,
+  undefined, // use default storage (localStorage)
+  { getOnInit: true }, // read storage synchronously on init
 );
 
 export const isAuthenticatedAtom = atom((get) => get(authUserAtom) !== null);
