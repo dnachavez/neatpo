@@ -66,6 +66,12 @@ const documentTypeLabels: Record<string, string> = {
   other: "Other",
 };
 
+/** Converts "YYYY-MM-DD" string to a Unix timestamp (ms). Returns undefined if invalid. */
+function parseDateToTimestamp(dateStr: string): number | undefined {
+  const ms = new Date(dateStr).getTime();
+  return Number.isNaN(ms) ? undefined : ms;
+}
+
 export function OcrReviewDialog({
   documentId,
   open,
@@ -238,6 +244,32 @@ export function OcrReviewDialog({
 
       if (data.vendorName) {
         updateFields.supplier = data.vendorName;
+      }
+
+      const parsedOrderDate = data.orderDate ? parseDateToTimestamp(data.orderDate) : undefined;
+      if (parsedOrderDate !== undefined) {
+        updateFields.orderDate = parsedOrderDate;
+      }
+
+      const parsedDeliveryDate = data.deliveryDate ? parseDateToTimestamp(data.deliveryDate) : undefined;
+      if (parsedDeliveryDate !== undefined) {
+        updateFields.expectedDeliveryDate = parsedDeliveryDate;
+      }
+
+      if (data.totalAmount) {
+        updateFields.totalAmount = data.totalAmount;
+      }
+
+      if (data.shippingDetails) {
+        updateFields.shippingDetails = data.shippingDetails;
+      }
+
+      if (data.trackingNumber) {
+        updateFields.trackingNumber = data.trackingNumber;
+      }
+
+      if (data.notes) {
+        updateFields.notes = data.notes;
       }
 
       await updatePO(updateFields);

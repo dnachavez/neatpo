@@ -25,6 +25,11 @@ export default defineSchema({
         quantity: v.number(),
       }),
     ),
+    totalAmount: v.optional(v.string()),
+    currency: v.optional(v.string()),
+    shippingDetails: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
+    notes: v.optional(v.string()),
     status: v.union(
       v.literal("draft"),
       v.literal("processing"),

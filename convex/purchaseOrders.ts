@@ -88,6 +88,11 @@ export const update = mutation({
         }),
       ),
     ),
+    totalAmount: v.optional(v.string()),
+    currency: v.optional(v.string()),
+    shippingDetails: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
+    notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const { id, ...fields } = args;
