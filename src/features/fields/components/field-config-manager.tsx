@@ -32,6 +32,15 @@ import {
   CalendarBlank,
   Plus,
   Eye,
+  ToggleLeft,
+  EnvelopeSimple,
+  Phone,
+  LinkSimple,
+  TextAlignLeft,
+  CurrencyDollar,
+  CaretDown,
+  Clock,
+  CalendarDots,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,7 +65,19 @@ type FieldConfig = {
   _id: Id<"fieldConfigs">;
   label: string;
   key: string;
-  type: "string" | "number" | "date";
+  type:
+    | "string"
+    | "number"
+    | "date"
+    | "boolean"
+    | "email"
+    | "phone"
+    | "url"
+    | "textarea"
+    | "currency"
+    | "select"
+    | "time"
+    | "datetime";
   required: boolean;
   order: number;
   width: "full" | "half";
@@ -66,12 +87,30 @@ const typeIcons: Record<string, React.ComponentType<{ size: number; className?: 
   string: TextT,
   number: Hash,
   date: CalendarBlank,
+  boolean: ToggleLeft,
+  email: EnvelopeSimple,
+  phone: Phone,
+  url: LinkSimple,
+  textarea: TextAlignLeft,
+  currency: CurrencyDollar,
+  select: CaretDown,
+  time: Clock,
+  datetime: CalendarDots,
 };
 
 const typeLabels: Record<string, string> = {
   string: "Text",
   number: "Number",
   date: "Date",
+  boolean: "Yes / No",
+  email: "Email",
+  phone: "Phone",
+  url: "URL",
+  textarea: "Long Text",
+  currency: "Currency",
+  select: "Dropdown",
+  time: "Time",
+  datetime: "Date & Time",
 };
 
 // --- Sortable Field Item ---
@@ -275,7 +314,25 @@ function FormPreview({ fields }: { fields: FieldConfig[] }) {
                   ? "YYYY-MM-DD"
                   : field.type === "number"
                     ? "0"
-                    : `Enter ${field.label.toLowerCase()}…`}
+                    : field.type === "boolean"
+                      ? "Yes / No"
+                      : field.type === "email"
+                        ? "name@example.com"
+                        : field.type === "phone"
+                          ? "+1 (555) 000-0000"
+                          : field.type === "url"
+                            ? "https://"
+                            : field.type === "textarea"
+                              ? "Enter long text…"
+                              : field.type === "currency"
+                                ? "0.00"
+                                : field.type === "select"
+                                  ? "Select an option…"
+                                  : field.type === "time"
+                                    ? "HH:MM"
+                                    : field.type === "datetime"
+                                      ? "YYYY-MM-DD HH:MM"
+                                      : `Enter ${field.label.toLowerCase()}…`}
               </div>
             </div>
           ))}

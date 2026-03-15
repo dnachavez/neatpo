@@ -77,23 +77,13 @@ export function UploadZone() {
 
   function addFiles(files: File[]) {
     const validFiles = files.filter((file) => {
-      const isValidType = [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-      ].includes(file.type);
       const isValidSize = file.size <= 10 * 1024 * 1024;
-      if (!isValidType) {
-        toast.error(`"${file.name}" is not a supported format`, {
-          description: "Please upload PDF, JPG, or PNG files.",
-        });
-      }
       if (!isValidSize) {
         toast.error(`"${file.name}" is too large`, {
           description: "Maximum file size is 10MB.",
         });
       }
-      return isValidType && isValidSize;
+      return isValidSize;
     });
 
     const newFiles: SelectedFile[] = validFiles.map((file) => ({
@@ -243,13 +233,12 @@ export function UploadZone() {
               Drag and drop your logistics documents here
             </p>
             <p className="mt-1 text-xs text-neutral-400">
-              PDF, PNG, JPG up to 10MB each
+              Any document up to 10MB each
             </p>
             <div className="mt-4 flex items-center gap-2">
               <input
                 type="file"
                 multiple
-                accept=".pdf,.png,.jpg,.jpeg"
                 onChange={handleFileSelect}
                 className="hidden"
                 ref={fileInputRef}

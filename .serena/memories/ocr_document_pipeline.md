@@ -1,7 +1,7 @@
 # OCR & Document Processing Pipeline
 
 ## Flow
-1. **Upload**: User uploads a document via `upload-zone.tsx` or captures via `camera-capture.tsx`
+1. **Upload**: User uploads any document (no file type restrictions, 10MB max) via `upload-zone.tsx` or captures via `camera-capture.tsx`
 2. **Storage**: File is stored in Convex file storage via `documents.generateUploadUrl` + `documents.create`
 3. **Processing**: `ocr.processDocument` action is triggered
    - Sets document status to `"processing"`

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 function formatDate(date: Date | undefined): string {
   if (!date) return "";
@@ -38,7 +39,19 @@ type FieldConfig = {
   _id: string;
   label: string;
   key: string;
-  type: "string" | "number" | "date";
+  type:
+    | "string"
+    | "number"
+    | "date"
+    | "boolean"
+    | "email"
+    | "phone"
+    | "url"
+    | "textarea"
+    | "currency"
+    | "select"
+    | "time"
+    | "datetime";
   required: boolean;
   order: number;
   width: "full" | "half";
@@ -308,6 +321,75 @@ export function CreatePoDialog() {
                         placeholder="0"
                         className="border-neutral-200 bg-white"
                         {...register(field.key, { valueAsNumber: true })}
+                      />
+                    ) : field.type === "boolean" ? (
+                      <Controller
+                        control={control}
+                        name={field.key}
+                        render={({ field: formField }) => (
+                          <div className="flex h-9 items-center">
+                            <Switch
+                              checked={!!formField.value}
+                              onCheckedChange={formField.onChange}
+                            />
+                            <span className="ml-2 text-sm text-neutral-500">
+                              {formField.value ? "Yes" : "No"}
+                            </span>
+                          </div>
+                        )}
+                      />
+                    ) : field.type === "email" ? (
+                      <Input
+                        type="email"
+                        placeholder="name@example.com"
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key)}
+                      />
+                    ) : field.type === "phone" ? (
+                      <Input
+                        type="tel"
+                        placeholder="+1 (555) 000-0000"
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key)}
+                      />
+                    ) : field.type === "url" ? (
+                      <Input
+                        type="url"
+                        placeholder="https://"
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key)}
+                      />
+                    ) : field.type === "textarea" ? (
+                      <textarea
+                        placeholder={`Enter ${field.label.toLowerCase()}…`}
+                        className="flex min-h-[80px] w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        {...register(field.key)}
+                      />
+                    ) : field.type === "currency" ? (
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key, { valueAsNumber: true })}
+                      />
+                    ) : field.type === "select" ? (
+                      <Input
+                        placeholder={`Enter ${field.label.toLowerCase()}…`}
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key)}
+                      />
+                    ) : field.type === "time" ? (
+                      <Input
+                        type="time"
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key)}
+                      />
+                    ) : field.type === "datetime" ? (
+                      <Input
+                        type="datetime-local"
+                        className="border-neutral-200 bg-white"
+                        {...register(field.key)}
                       />
                     ) : (
                       <Input

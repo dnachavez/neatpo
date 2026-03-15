@@ -35,7 +35,20 @@ import { cn } from "@/lib/utils";
 export const fieldSchema = z.object({
   label: z.string().min(1, "Label is required"),
   key: z.string().min(1, "Field key is required"),
-  type: z.enum(["string", "number", "date"]),
+  type: z.enum([
+    "string",
+    "number",
+    "date",
+    "boolean",
+    "email",
+    "phone",
+    "url",
+    "textarea",
+    "currency",
+    "select",
+    "time",
+    "datetime",
+  ]),
   required: z.boolean(),
   width: z.enum(["full", "half"]),
 });
@@ -49,7 +62,19 @@ interface AddFieldDialogProps {
     _id: Id<"fieldConfigs">;
     label: string;
     key: string;
-    type: "string" | "number" | "date";
+    type:
+      | "string"
+      | "number"
+      | "date"
+      | "boolean"
+      | "email"
+      | "phone"
+      | "url"
+      | "textarea"
+      | "currency"
+      | "select"
+      | "time"
+      | "datetime";
     required: boolean;
     width: "full" | "half";
   } | null;
@@ -238,6 +263,15 @@ export function AddFieldDialog({
                       <SelectItem value="string">Text</SelectItem>
                       <SelectItem value="number">Number</SelectItem>
                       <SelectItem value="date">Date</SelectItem>
+                      <SelectItem value="boolean">Yes / No</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="phone">Phone</SelectItem>
+                      <SelectItem value="url">URL</SelectItem>
+                      <SelectItem value="textarea">Long Text</SelectItem>
+                      <SelectItem value="currency">Currency</SelectItem>
+                      <SelectItem value="select">Dropdown</SelectItem>
+                      <SelectItem value="time">Time</SelectItem>
+                      <SelectItem value="datetime">Date & Time</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

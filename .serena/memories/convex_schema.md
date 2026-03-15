@@ -10,7 +10,7 @@
 
 ### fieldConfigs
 - `userId` (id → users), `label` (string), `key` (string)
-- `type` (union: "string" | "number" | "date")
+- `type` (union: "string" | "number" | "date" | "boolean" | "email" | "phone" | "url" | "textarea" | "currency" | "select" | "time" | "datetime")
 - `required` (boolean), `order` (number), `width` (union: "full" | "half")
 - `isDefault` (boolean), `createdAt` (number)
 - **Indexes**: `by_user` [userId], `by_user_and_key` [userId, key]

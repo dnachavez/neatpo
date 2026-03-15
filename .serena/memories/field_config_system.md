@@ -7,11 +7,20 @@ Allows users to customize the PO creation form by adding, editing, removing, and
 - `string` — text input
 - `number` — numeric input
 - `date` — date picker
+- `boolean` — yes/no switch
+- `email` — email input
+- `phone` — phone input
+- `url` — URL input
+- `textarea` — multi-line text
+- `currency` — currency amount (number with 0.01 step)
+- `select` — dropdown (text input placeholder)
+- `time` — time picker
+- `datetime` — date & time picker
 
 ## Field Properties
 - `label` — display name
 - `key` — unique identifier (per user)
-- `type` — string | number | date
+- `type` — string | number | date | boolean | email | phone | url | textarea | currency | select | time | datetime
 - `required` — whether the field is mandatory
 - `order` — sort position for rendering
 - `width` — "full" (100%) or "half" (50%)
