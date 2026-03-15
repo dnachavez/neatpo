@@ -32,7 +32,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-const fieldSchema = z.object({
+export const fieldSchema = z.object({
   label: z.string().min(1, "Label is required"),
   key: z.string().min(1, "Field key is required"),
   type: z.enum(["string", "number", "date"]),
